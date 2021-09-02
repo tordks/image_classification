@@ -1,7 +1,5 @@
 import click
 from pathlib import Path
-import mlflow.pytorch
-from mlflow.tracking import MlflowClient
 import pytorch_lightning as pl
 from torch import nn
 import torch.nn.functional as F
@@ -13,18 +11,6 @@ from imageclsmodule import ImageClassificationModule
 # TODO: MLFlow VS TensorBoard
 # TODO: ONNX inference
 # TODO: Using premade network, eg. vgg16. Need to adapt start and end of network.
-
-
-def print_auto_logged_info(r):
-    tags = {k: v for k, v in r.data.tags.items() if not k.startswith("mlflow.")}
-    artifacts = [
-        f.path for f in MlflowClient().list_artifacts(r.info.run_id, "model")
-    ]
-    print("run_id: {}".format(r.info.run_id))
-    print("artifacts: {}".format(artifacts))
-    print("params: {}".format(r.data.params))
-    print("metrics: {}".format(r.data.metrics))
-    print("tags: {}".format(tags))
 
 
 class Net(nn.Module):
@@ -51,10 +37,7 @@ class Net(nn.Module):
 
 
 @click.command()
-@click.option(
-    "--mlflow", is_flag=True, help="whether to use mlflow autologging"
-)
-def train(mlflow):
+def train():
 
     # Set up data
     data_dir = "~/exploration/image_classification/data"
@@ -76,15 +59,7 @@ def train(mlflow):
 
     # Train the model
     model = ImageClassificationModule(network=Net())
-    if mlflow:
-        # Auto log all MLflow entities
-        with mlflow.start_run() as run:
-            trainer.fit(model, data)
-
-        # fetch the auto logged parameters and metrics
-        print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))
-    else:
-        trainer.fit(model, data)
+    trainer.fit(model, data)
 
     # Save model
     input_sample = data.train[0]["feature"]
