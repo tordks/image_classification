@@ -18,6 +18,7 @@ loguru = "^0.5.3"
 torchmetrics = "^0.5.1"
 mlflow = "^1.20.1"
 albumentations = "^1.0.3"
+tensorboard = "^2.6.0"
 
 [tool.poetry.dev-dependencies]
 
