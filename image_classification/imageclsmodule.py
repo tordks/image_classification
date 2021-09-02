@@ -5,8 +5,6 @@ from typing import Union
 import torch
 from torch.nn import Module
 
-from image_classification.classloader import class_loader
-
 
 ModuleType = Union[Module, pl.LightningModule]
 

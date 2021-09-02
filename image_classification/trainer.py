@@ -53,13 +53,10 @@ class Net(nn.Module):
 
 
 @click.command()
-@click.option("--output-dir", "-o", type=click.Path(exists=True), default=".")
 @click.option(
     "--mlflow", is_flag=True, help="whether to use mlflow autologging"
 )
-def train(output_dir, mlflow):
-
-    output_dir = Path(output_dir)
+def train(mlflow):
 
     # train dataloader
     train_dataset = MNIST(
@@ -85,7 +82,19 @@ def train(output_dir, mlflow):
 
     model = ImageClassificationModule(network=Net())
 
-    trainer = pl.Trainer(max_epochs=1)
+    # Set up trainer
+    callbacks = [
+        pl.callbacks.ModelCheckpoint(
+            monitor="val_loss",
+            mode="min",
+            every_n_epochs=1,
+        ),
+        pl.callbacks.LearningRateMonitor(
+            logging_interval="step",
+            log_momentum=True,
+        ),
+    ]
+    trainer = pl.Trainer(max_epochs=1, callbacks=callbacks)
 
     # Train the model
     if mlflow:
@@ -102,7 +111,7 @@ def train(output_dir, mlflow):
     input_sample = train_dataset[0]["feature"]
     input_sample = input_sample.reshape((1, *input_sample.shape))
     model.to_onnx(
-        output_dir / "mnist_model.onnx",
+        Path(model.logger.experiment.log_dir) / "mnist_model.onnx",
         input_sample=input_sample,
         input_names=["feature"],
         output_names=["prediction"],
