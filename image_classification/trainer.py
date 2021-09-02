@@ -8,7 +8,7 @@ from torch import nn
 import torch.nn.functional as F
 import torchvision
 
-from datasets import MNIST
+from datasets import MNIST, MNISTDataModule
 from imageclsmodule import ImageClassificationModule
 
 # TODO: AutoAugment
@@ -58,29 +58,9 @@ class Net(nn.Module):
 )
 def train(mlflow):
 
-    # train dataloader
-    train_dataset = MNIST(
-        root="./data",
-        train=True,
-        download=True,
-        transform=torchvision.transforms.ToTensor(),
-    )
-    train_dataloader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=32, shuffle=False, num_workers=6
-    )
-
-    # validation dataloader
-    val_dataset = MNIST(
-        root="./data",
-        train=False,
-        download=True,
-        transform=torchvision.transforms.ToTensor(),
-    )
-    val_dataloader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=64, shuffle=False
-    )
-
-    model = ImageClassificationModule(network=Net())
+    # Set up data
+    data_dir = "~/exploration/image_classification/data"
+    data = MNISTDataModule(data_dir)
 
     # Set up trainer
     callbacks = [
@@ -97,18 +77,19 @@ def train(mlflow):
     trainer = pl.Trainer(max_epochs=1, callbacks=callbacks)
 
     # Train the model
+    model = ImageClassificationModule(network=Net())
     if mlflow:
         # Auto log all MLflow entities
         with mlflow.start_run() as run:
-            trainer.fit(model, train_dataloader, val_dataloader)
+            trainer.fit(model, data)
 
         # fetch the auto logged parameters and metrics
         print_auto_logged_info(mlflow.get_run(run_id=run.info.run_id))
     else:
-        trainer.fit(model, train_dataloader, val_dataloader)
+        trainer.fit(model, data)
 
     # Save model
-    input_sample = train_dataset[0]["feature"]
+    input_sample = data.train[0]["feature"]
     input_sample = input_sample.reshape((1, *input_sample.shape))
     model.to_onnx(
         Path(model.logger.experiment.log_dir) / "mnist_model.onnx",
