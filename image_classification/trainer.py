@@ -3,12 +3,10 @@ from pathlib import Path
 import mlflow.pytorch
 from mlflow.tracking import MlflowClient
 import pytorch_lightning as pl
-import torch
 from torch import nn
 import torch.nn.functional as F
-import torchvision
 
-from datasets import MNIST, MNISTDataModule
+from datasets import MNISTDataModule
 from imageclsmodule import ImageClassificationModule
 
 # TODO: AutoAugment
