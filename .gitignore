@@ -1,0 +1,8 @@
+*.eggs
+*pycache*
+
+data
+lightning_logs
+mlruns
+.vscode
+*.code-workspace
