@@ -58,7 +58,10 @@ def train(seed):
             log_momentum=True,
         ),
     ]
-    trainer = pl.Trainer(max_epochs=1, callbacks=callbacks)
+    trainer = pl.Trainer(
+        callbacks=callbacks,
+        profiler="pytorch",
+    )
 
     # Train the model
     model = ImageClassificationModule(network=Net())
