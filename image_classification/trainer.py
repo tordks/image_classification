@@ -4,8 +4,8 @@ import pytorch_lightning as pl
 from torch import nn
 import torch.nn.functional as F
 
-from datasets import MNISTDataModule
-from imageclsmodule import ImageClassificationModule
+from image_classification.datasets import MNISTDataModule
+from image_classification.imageclsmodule import ImageClassificationModule
 
 # TODO: AutoAugment
 # TODO: MLFlow VS TensorBoard
@@ -38,7 +38,7 @@ class Net(nn.Module):
 
 # TODO: Load Trainer options from config file
 @click.command()
-@click.option("--max-epochs", type=str, help="max epochs to use for training.")
+@click.option("--max-epochs", type=int, help="max epochs to use for training.")
 @click.option(
     "--max-time",
     type=str,
