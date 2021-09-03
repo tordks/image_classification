@@ -4,6 +4,7 @@ from ruamel.yaml import YAML
 from typing import Union
 import torch
 from torch.nn import Module
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 ModuleType = Union[Module, pl.LightningModule]
@@ -22,13 +23,13 @@ class ImageClassificationModule(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         """
-        :param batch: dictionary of batch information from dataset
+        :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
         logits = self.network(batch["feature"])
         loss = self.loss(logits, batch["label"])
 
-        return {"loss": loss}
+        return {"batch_idx": batch_idx, "loss": loss}
 
     def validation_step(self, *args, **kwargs):
         # TODO: visualize on validation set every nth batch
@@ -41,4 +42,9 @@ class ImageClassificationModule(pl.LightningModule):
     def configure_optimizers(self):
         # TODO: Configure optimizer through class_loader
         optimizer = torch.optim.Adam(self.network.parameters(), 0.001)
-        return optimizer
+        scheduler = ReduceLROnPlateau(optimizer)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": scheduler,
+            "monitor": "val_loss",
+        }
