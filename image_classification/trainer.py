@@ -36,9 +36,16 @@ class Net(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
+# TODO: Load Trainer options from config file
 @click.command()
+@click.option("--max-epochs", type=str, help="max epochs to use for training.")
+@click.option(
+    "--max-time",
+    type=str,
+    help="max time to use for training. On the format 'DD.HH.MM.SS'",
+)
 @click.option("--seed", type=int, help="number to use for setting random seed")
-def train(seed):
+def train(seed, max_epochs, max_time):
 
     if seed is not None:
         pl.seed_everything(seed, workers=True)
@@ -59,6 +66,8 @@ def train(seed):
         ),
     ]
     trainer = pl.Trainer(
+        max_epochs=max_epochs,
+        max_time=max_time,
         callbacks=callbacks,
         profiler="pytorch",
     )
