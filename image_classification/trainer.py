@@ -37,8 +37,11 @@ class Net(nn.Module):
 
 
 @click.command()
-def train():
+@click.option("--seed", type=int, help="number to use for setting random seed")
+def train(seed):
 
+    if seed is not None:
+        pl.seed_everything(seed, workers=True)
     # Set up data
     data_dir = "~/exploration/image_classification/data"
     data = MNISTDataModule(data_dir)
