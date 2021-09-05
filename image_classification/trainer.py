@@ -65,10 +65,16 @@ def train(seed, max_epochs, max_time):
             log_momentum=True,
         ),
     ]
+    tb_logger = pl.loggers.TensorBoardLogger(
+        save_dir=Path().resolve(),
+        name="lightning_logs",
+        default_hp_metric=False,
+    )
     trainer = pl.Trainer(
         max_epochs=max_epochs,
         max_time=max_time,
         callbacks=callbacks,
+        logger=tb_logger,
         profiler="pytorch",
     )
 

@@ -28,16 +28,18 @@ class ImageClassificationModule(pl.LightningModule):
         """
         logits = self.network(batch["feature"])
         loss = self.loss(logits, batch["label"])
-
+        self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
         return {"batch_idx": batch_idx, "loss": loss}
 
-    def validation_step(self, *args, **kwargs):
-        # TODO: visualize on validation set every nth batch
-        return super().validation_step(*args, **kwargs)
-
-    def training_epoch_end(self, outputs):
-        # TODO: visualize metrics every epoch
-        ...
+    def validation_step(self, batch, batch_idx):
+        """
+        :param batch: dictionary of batch information from dataloader
+        :param batch_idx: current batch idx
+        """
+        logits = self.network(batch["feature"])
+        loss = self.loss(logits, batch["label"])
+        self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
+        return {"batch_idx": batch_idx, "val_loss": loss}
 
     def configure_optimizers(self):
         # TODO: Configure optimizer through class_loader
