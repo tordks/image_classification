@@ -1,10 +1,12 @@
 import click
 from pathlib import Path
 import pytorch_lightning as pl
+from ruamel.yaml import YAML
 from torch import nn
 import torch.nn.functional as F
 
 from image_classification.datasets import MNISTDataModule
+from image_classification.util import dynamic_loader
 from image_classification.imageclsmodule import ImageClassificationModule
 
 # TODO: AutoAugment
@@ -38,14 +40,17 @@ class Net(nn.Module):
 
 # TODO: Load Trainer options from config file
 @click.command()
+@click.argument("config")
 @click.option("--max-epochs", type=int, help="max epochs to use for training.")
 @click.option(
     "--max-time",
     type=str,
     help="max time to use for training. On the format 'DD.HH.MM.SS'",
 )
-@click.option("--seed", type=int, help="number to use for setting random seed")
-def train(seed, max_epochs, max_time):
+@click.option(type=int, help="number to use for setting random seed")
+def train(config, max_epochs, max_time):
+
+    config = YAML().load(Path(config).read_text())
 
     if seed is not None:
         pl.seed_everything(seed, workers=True)
@@ -55,16 +60,10 @@ def train(seed, max_epochs, max_time):
 
     # Set up trainer
     callbacks = [
-        pl.callbacks.ModelCheckpoint(
-            monitor="val_loss",
-            mode="min",
-            every_n_epochs=1,
-        ),
-        pl.callbacks.LearningRateMonitor(
-            logging_interval="step",
-            log_momentum=True,
-        ),
+        dynamic_loader(attribute_config)
+        for _, attribute_config in config["framework"]["callbacks"].items()
     ]
+
     tb_logger = pl.loggers.TensorBoardLogger(
         save_dir=Path().resolve(),
         name="lightning_logs",

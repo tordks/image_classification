@@ -1,0 +1,16 @@
+framework:
+  seed: 123
+  callbacks:
+      model_checkpoint:
+          name: pytorch_lightning.callbacks.ModelCheckpoint
+          kwargs:
+              save_top_k: 3
+              monitor: 'val_loss'
+              save_weights_only: False
+              mode: min
+              every_n_epochs: 1
+      lr_scheduler:
+          name: pytorch_lightning.callbacks.LearningRateMonitor
+          kwargs:
+            logging_interval: "step"
+            log_momentum: true
