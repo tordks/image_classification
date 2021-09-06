@@ -19,6 +19,13 @@ framework:
         log_momentum: true
 
 training:
+  logger:
+    name: pytorch_lightning.loggers.TensorBoardLogger
+    kwargs:
+      save_dir: "."
+      name: lightning_logs
+      default_hp_metric: false
+      log_graph: true
   module:
     network:
       name: image_classification.network.Net

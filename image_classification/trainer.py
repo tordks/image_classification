@@ -39,16 +39,13 @@ def train(config, max_epochs, max_time):
         for _, attribute_config in config["framework"]["callbacks"].items()
     ]
 
-    tb_logger = pl.loggers.TensorBoardLogger(
-        save_dir=Path().resolve(),
-        name="lightning_logs",
-        default_hp_metric=False,
-    )
+    training_logger = dynamic_loader(config["training"]["logger"])
+
     trainer = pl.Trainer(
         max_epochs=max_epochs,
         max_time=max_time,
         callbacks=callbacks,
-        logger=tb_logger,
+        logger=training_logger,
         profiler="pytorch",
     )
 
