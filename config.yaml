@@ -1,16 +1,33 @@
+hyperparameters:
+  lr: &lr 0.003
+
 framework:
   seed: 123
   callbacks:
-      model_checkpoint:
-          name: pytorch_lightning.callbacks.ModelCheckpoint
-          kwargs:
-              save_top_k: 3
-              monitor: 'val_loss'
-              save_weights_only: False
-              mode: min
-              every_n_epochs: 1
-      lr_scheduler:
-          name: pytorch_lightning.callbacks.LearningRateMonitor
-          kwargs:
-            logging_interval: "step"
-            log_momentum: true
+    model_checkpoint:
+      name: pytorch_lightning.callbacks.ModelCheckpoint
+      kwargs:
+        save_top_k: 3
+        monitor: "val_loss"
+        save_weights_only: False
+        mode: min
+        every_n_epochs: 1
+    lr_scheduler:
+      name: pytorch_lightning.callbacks.LearningRateMonitor
+      kwargs:
+        logging_interval: "step"
+        log_momentum: true
+
+training:
+  module:
+    network:
+      name: image_classification.network.Net
+    loss:
+      name: torch.nn.CrossEntropyLoss
+    optimizer:
+      name: torch.optim.Adam
+      kwargs:
+        lr: *lr
+    lr_scheduler:
+      name: torch.optim.lr_scheduler.ReduceLROnPlateau
+      monitor: "val_loss"

@@ -1,3 +1,4 @@
+from image_classification.util import dynamic_loader
 from loguru import logger
 import pytorch_lightning as pl
 from ruamel.yaml import YAML
@@ -11,12 +12,17 @@ ModuleType = Union[Module, pl.LightningModule]
 
 
 class ImageClassificationModule(pl.LightningModule):
-    def __init__(self, network: ModuleType):
+    def __init__(self, config):
+        """
+        Module for performing image classification.
+        """
+        # TODO: Define config conventions through eg. pydantic
         super().__init__()
-        self.network = network
+        self.config = config
+        self.network = dynamic_loader(self.config["network"])
 
     def setup(self, stage):
-        self.loss: torch.nn.CrossEntropyLoss = torch.nn.CrossEntropyLoss()
+        self.loss = dynamic_loader(self.config["loss"])
 
     def forward(self, x):
         return self.network(x)
@@ -42,11 +48,21 @@ class ImageClassificationModule(pl.LightningModule):
         return {"batch_idx": batch_idx, "val_loss": loss}
 
     def configure_optimizers(self):
-        # TODO: Configure optimizer through class_loader
-        optimizer = torch.optim.Adam(self.network.parameters(), 0.001)
-        scheduler = ReduceLROnPlateau(optimizer)
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": scheduler,
-            "monitor": "val_loss",
-        }
+        """
+        Configure optimizer and scheduler
+        """
+        optimizer = dynamic_loader(
+            self.config["optimizer"], extra_args=[self.network.parameters()]
+        )
+        configuration = {"optimizer": optimizer}
+
+        if "lr_scheduler" in self.config:
+            lr_scheduler = dynamic_loader(
+                self.config["lr_scheduler"], extra_args=[optimizer]
+            )
+            configuration["lr_scheduler"] = lr_scheduler
+
+            if "monitor" in self.config["lr_scheduler"]:
+                configuration["monitor"] = self.config["lr_scheduler"]["monitor"]
+
+        return configuration
