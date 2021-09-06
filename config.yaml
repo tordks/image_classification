@@ -31,3 +31,9 @@ training:
     lr_scheduler:
       name: torch.optim.lr_scheduler.ReduceLROnPlateau
       monitor: "val_loss"
+
+data:
+  name: image_classification.datasets.MNISTDataModule
+  kwargs:
+    data_dir: ./data
+    download: true

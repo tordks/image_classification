@@ -27,12 +27,18 @@ class MNIST(torchvision.datasets.MNIST):
 
 class MNISTDataModule(pl.LightningDataModule):
     def __init__(
-        self, data_dir: Path, batch_size: int = 32, num_workers: int = 6
+        self,
+        data_dir: Path,
+        batch_size: int = 32,
+        num_workers: int = 6,
+        download: bool = False,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.download = download
+
         self.transforms = transforms.Compose(
             [
                 transforms.ToTensor(),
@@ -44,10 +50,19 @@ class MNISTDataModule(pl.LightningDataModule):
         )
 
     def setup(self, stage: Optional[str] = None):
-        full = MNIST(self.data_dir, train=True, transform=self.transforms)
+        full = MNIST(
+            self.data_dir,
+            train=True,
+            transform=self.transforms,
+            download=self.download,
+        )
         self.train, self.val = random_split(full, [55000, 5000])
-
-        self.test = MNIST(self.data_dir, train=False, transform=self.transforms)
+        self.test = MNIST(
+            self.data_dir,
+            train=False,
+            transform=self.transforms,
+            download=self.download,
+        )
 
     def train_dataloader(self):
         return DataLoader(

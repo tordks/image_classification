@@ -3,7 +3,6 @@ from pathlib import Path
 import pytorch_lightning as pl
 from ruamel.yaml import YAML
 
-from image_classification.datasets import MNISTDataModule
 from image_classification.util import dynamic_loader
 from image_classification.imageclsmodule import ImageClassificationModule
 
@@ -32,8 +31,7 @@ def train(config, max_epochs, max_time):
         pl.seed_everything(seed, workers=True)
 
     # Set up data
-    data_dir = "~/exploration/image_classification/data"
-    data = MNISTDataModule(data_dir)
+    data = dynamic_loader(config["data"])
 
     # Set up trainer
     callbacks = [
