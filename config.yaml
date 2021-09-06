@@ -12,7 +12,7 @@ framework:
         save_weights_only: False
         mode: min
         every_n_epochs: 1
-    lr_scheduler:
+    lr_monitor:
       name: pytorch_lightning.callbacks.LearningRateMonitor
       kwargs:
         logging_interval: "step"
