@@ -12,20 +12,13 @@ from image_classification.imageclsmodule import ImageClassificationModule
 # TODO: Using premade network, eg. vgg16. Need to adapt start and end of network.
 
 
-# TODO: Load Trainer options from config file
 @click.command()
 @click.argument("config")
-@click.option("--max-epochs", type=int, help="max epochs to use for training.")
-@click.option(
-    "--max-time",
-    type=str,
-    help="max time to use for training. On the format 'DD.HH.MM.SS'",
-)
-def train(config, max_epochs, max_time):
+def train(config):
 
-    # TODO: Wrap config in a predictable object, eg. using pydantic
+    # TODO: Wrap config in a predictable, typed object, eg. using pydantic
     config = YAML().load(Path(config).read_text())
-    seed = config["framework"]["seed"]
+    seed = config["seed"]
 
     if seed is not None:
         pl.seed_everything(seed, workers=True)
@@ -36,21 +29,17 @@ def train(config, max_epochs, max_time):
     # Set up trainer
     callbacks = [
         dynamic_loader(attribute_config)
-        for _, attribute_config in config["framework"]["callbacks"].items()
+        for _, attribute_config in config["callbacks"].items()
     ]
 
-    training_logger = dynamic_loader(config["training"]["logger"])
-
-    trainer = pl.Trainer(
-        max_epochs=max_epochs,
-        max_time=max_time,
-        callbacks=callbacks,
-        logger=training_logger,
-        profiler="pytorch",
+    training_logger = dynamic_loader(config["training_logger"])
+    trainer = dynamic_loader(
+        config["trainer"],
+        extra_kwargs={"logger": training_logger, "callbacks": callbacks},
     )
 
     # Train the model
-    model = ImageClassificationModule(config["training"]["module"])
+    model = ImageClassificationModule(config["module"])
     trainer.fit(model, data)
 
     # Save model
