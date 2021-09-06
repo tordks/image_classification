@@ -33,7 +33,7 @@ def dynamic_import(name: str) -> Union[Callable, ModuleType]:
     return imported
 
 
-def dynamic_loader(config: dict, call=True):
+def dynamic_loader(config: dict, extra_args=None, extra_kwargs=None, call=True):
     """
     config is on the format:
     {
@@ -45,14 +45,18 @@ def dynamic_loader(config: dict, call=True):
     # TODO: open up for recursive loading. ie. if kwargs contains name, args and
     #       kwargs.
     # TODO: allow for partial call?
-    breakpoint()
     imported_attr = dynamic_import(config["name"])
     if not callable(imported_attr):
         raise TypeError("Can only load callables")
     imported_attr = cast(Callable, imported_attr)  # silence type checker
 
     args = config.get("args", [])
+    if extra_args is not None:
+        args = [*args, *extra_args]
     kwargs = config.get("kwargs", {})
+    if extra_kwargs is not None:
+        kwargs = {**kwargs, **extra_kwargs}
+
     if call:
         return imported_attr(*args, **kwargs)
     else:
