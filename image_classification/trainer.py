@@ -9,7 +9,7 @@ from image_classification.imageclsmodule import ImageClassificationModule
 # TODO: AutoAugment
 # TODO: MLFlow VS TensorBoard
 # TODO: ONNX inference
-# TODO: Using premade network, eg. vgg16. Need to adapt start and end of network.
+# TODO: Using premade network, eg. vgg16. Need to adapt start and end of network
 
 
 @click.command()

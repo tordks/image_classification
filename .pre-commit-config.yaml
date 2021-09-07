@@ -1,0 +1,36 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+      -   id: check-added-large-files
+      -   id: check-yaml
+      -   id: debug-statements
+      -   id: detect-private-key
+      -   id: end-of-file-fixer
+      -   id: mixed-line-ending
+      -   id: trailing-whitespace
+- repo: https://github.com/ambv/black
+  rev: 21.5b1
+  hooks:
+  - id: black
+    language_version: python3.8
+- repo: https://github.com/PyCQA/flake8
+  rev: 3.9.2
+  hooks:
+    - id: flake8
+      additional_dependencies: [
+        flake8-breakpoint,
+        flake8-markdown,
+        flake8-print,
+      ]
+      args:
+        - --max-line-length=80
+- repo: https://github.com/jorisroovers/gitlint
+  rev: v0.15.1
+  hooks:
+    - id: gitlint
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.18.3
+  hooks:
+  -   id: pyupgrade
+      args: ["--py38-plus"]

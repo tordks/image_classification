@@ -1,11 +1,7 @@
 from image_classification.util import dynamic_loader
-from loguru import logger
 import pytorch_lightning as pl
-from ruamel.yaml import YAML
 from typing import Union
-import torch
 from torch.nn import Module
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 ModuleType = Union[Module, pl.LightningModule]
@@ -63,6 +59,8 @@ class ImageClassificationModule(pl.LightningModule):
             configuration["lr_scheduler"] = lr_scheduler
 
             if "monitor" in self.config["lr_scheduler"]:
-                configuration["monitor"] = self.config["lr_scheduler"]["monitor"]
+                configuration["monitor"] = self.config["lr_scheduler"][
+                    "monitor"
+                ]
 
         return configuration
