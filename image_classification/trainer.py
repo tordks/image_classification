@@ -1,4 +1,5 @@
 import click
+import onnx
 from pathlib import Path
 import pytorch_lightning as pl
 from ruamel.yaml import YAML
@@ -45,14 +46,18 @@ def train(config):
     # Save model
     input_sample = data.train[0]["feature"]
     input_sample = input_sample.reshape((1, *input_sample.shape))
+    model_path = Path(model.logger.experiment.log_dir) / "model.onnx"
     model.to_onnx(
-        Path(model.logger.experiment.log_dir) / "mnist_model.onnx",
+        model_path,
         input_sample=input_sample,
         input_names=["feature"],
         output_names=["prediction"],
         dynamic_axes={"feature": {0: "batch_size"}},
         export_params=True,
     )
+
+    onnx_model = onnx.load(model_path)
+    onnx.checker.check_model(onnx_model)
 
 
 if __name__ == "__main__":
