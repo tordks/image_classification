@@ -42,6 +42,7 @@ def train(config):
     # Train the model
     model = ImageClassificationModule(config["module"])
     trainer.fit(model, data)
+    trainer.test(model, data)
 
     # Save model
     input_sample = data.train[0]["feature"]
