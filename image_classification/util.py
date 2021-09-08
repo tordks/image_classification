@@ -1,11 +1,8 @@
 from importlib import import_module
+from types import ModuleType
 from typing import Callable, Union, cast
-import sys  # only for defining ModuleType
 
 from loguru import logger
-
-
-ModuleType = type(sys)
 
 
 def dynamic_import(name: str) -> Union[Callable, ModuleType]:
