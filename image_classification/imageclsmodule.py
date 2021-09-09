@@ -5,6 +5,7 @@ from torch.nn import Module
 
 # TODO: weight loss based on class weights from datamodule
 # TODO: weigh loss based on class compatibility
+# TODO: adaptively weigh hard samples more than easy samples
 # TODO: add augmentations as inputs
 # TODO: add visualization of test/validation images
 
