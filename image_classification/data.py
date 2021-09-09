@@ -63,10 +63,13 @@ class CIFAR10DataModule(pl.LightningDataModule):
             transform=self.transforms,
             download=self.download,
         )
+        n_samples = int(len(full))
+        n_train_samples = int(0.8 * n_samples)
+        n_val_samples = n_samples - n_train_samples
         self.train, self.val = random_split(
-            full, [len(full) * 0.8, len(full) * 0.2]
+            full, [n_train_samples, n_val_samples]
         )
-        self.test = MNIST(
+        self.test = CIFAR10(
             self.data_dir,
             train=False,
             transform=self.transforms,
@@ -137,8 +140,11 @@ class MNISTDataModule(pl.LightningDataModule):
             transform=self.transforms,
             download=self.download,
         )
+        n_samples = int(len(full))
+        n_train_samples = int(0.8 * n_samples)
+        n_val_samples = n_samples - n_train_samples
         self.train, self.val = random_split(
-            full, [len(full) * 0.8, len(full) * 0.2]
+            full, [n_train_samples, n_val_samples]
         )
         self.test = MNIST(
             self.data_dir,
