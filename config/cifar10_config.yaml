@@ -8,7 +8,7 @@ trainer:
   kwargs:
     profiler: pytorch
     gpus: -1
-    auto_select_gpus: true 
+    auto_select_gpus: true
 
 callbacks:
   model_checkpoint:
@@ -36,7 +36,7 @@ training_logger:
 
 module:
   network:
-    name: image_classification.network.Net
+    name: image_classification.network.CIFAR10Net
   loss:
     name: torch.nn.CrossEntropyLoss
   optimizer:
@@ -48,7 +48,7 @@ module:
     monitor: "val_loss"
 
 data:
-  name: image_classification.datasets.MNISTDataModule
+  name: image_classification.data.CIFAR10DataModule
   kwargs:
     data_dir: ./data
     download: true

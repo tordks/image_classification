@@ -3,6 +3,7 @@ import pytorch_lightning as pl
 from typing import Union
 from torch.nn import Module
 
+# TODO: add augmentations as inputs
 
 ModuleType = Union[Module, pl.LightningModule]
 
