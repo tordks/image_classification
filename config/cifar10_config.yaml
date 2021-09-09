@@ -40,7 +40,7 @@ module:
   loss:
     name: torch.nn.CrossEntropyLoss
   optimizer:
-    name: torch.optim.Adam
+    name: adabelief_pytorch.AdaBelief
     kwargs:
       lr: *lr
   lr_scheduler:
