@@ -3,7 +3,10 @@ import pytorch_lightning as pl
 from typing import Union
 from torch.nn import Module
 
+# TODO: weight loss based on class weights from datamodule
+# TODO: weigh loss based on class compatibility
 # TODO: add augmentations as inputs
+# TODO: add visualization of test/validation images
 
 ModuleType = Union[Module, pl.LightningModule]
 
@@ -19,6 +22,9 @@ class ImageClassificationModule(pl.LightningModule):
         self.network = dynamic_loader(self.config["network"])
 
     def setup(self, stage):
+        """
+        Sets up the state
+        """
         self.loss = dynamic_loader(self.config["loss"])
 
     def forward(self, x):
@@ -45,6 +51,10 @@ class ImageClassificationModule(pl.LightningModule):
         return {"batch_idx": batch_idx, "val_loss": loss}
 
     def test_step(self, batch, batch_idx):
+        """
+        :param batch: dictionary of batch information from dataloader
+        :param batch_idx: current batch idx
+        """
         logits = self.network(batch["feature"])
         loss = self.loss(logits, batch["label"])
         self.log("test_loss", loss, on_step=False, on_epoch=True, logger=True)

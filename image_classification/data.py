@@ -7,8 +7,13 @@ from torch.utils.data.dataloader import DataLoader
 import torchvision
 from torchvision import transforms
 
+# TODO: add class weights to batch for handling class balance
 # TODO: make an abstraction for the dataset wrapper
+#    * one dataset that wraps imported datasets.
 # TODO: make an abstraction for the datamodule
+#    * one datamodule which supports multiple
+#    * add train transformation as an input
+# TODO: make typed object that represent the batch
 
 
 class CIFAR10(torchvision.datasets.CIFAR10):

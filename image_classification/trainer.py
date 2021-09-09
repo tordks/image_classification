@@ -7,11 +7,6 @@ from ruamel.yaml import YAML
 from image_classification.util import dynamic_loader
 from image_classification.imageclsmodule import ImageClassificationModule
 
-# TODO: AutoAugment
-# TODO: MLFlow VS TensorBoard
-# TODO: ONNX inference
-# TODO: Using premade network, eg. vgg16. Need to adapt start and end of network
-
 
 @click.command()
 @click.argument("config")
