@@ -27,27 +27,36 @@ def train(config):
     # Set up data
     data = dynamic_loader(config["data"])
 
-    # Set up trainer
+    # Set up training
     callbacks = [
         dynamic_loader(attribute_config)
         for _, attribute_config in config["callbacks"].items()
     ]
 
     training_logger = dynamic_loader(config["training_logger"])
+    log_dir = Path(training_logger.log_dir)
+
     trainer = dynamic_loader(
         config["trainer"],
         extra_kwargs={"logger": training_logger, "callbacks": callbacks},
     )
 
-    # Train the model
     model = ImageClassificationModule(config["module"])
+
+    # Train
+
+    #  log_dir is automatically created during fit, but want to save
+    #  config before fit is called.
+    log_dir.mkdir()
+    with open(log_dir / "config.yaml", "w") as fp:
+        YAML().dump(config, fp)
+
     trainer.fit(model, data)
     trainer.test(model, data)
 
-    # Save model
     input_sample = data.train[0]["feature"]
     input_sample = input_sample.reshape((1, *input_sample.shape))
-    model_path = Path(model.logger.experiment.log_dir) / "model.onnx"
+    model_path = log_dir / "model.onnx"
     model.to_onnx(
         model_path,
         input_sample=input_sample,
