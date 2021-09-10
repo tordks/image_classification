@@ -2,31 +2,35 @@
 
 This repo contains a thin abstraction around Pytorch Lightning for training
 image classification models. When training a deep learning model there is a lot
-of boilerplate code. Pytorch Lightning goes a long way to abstract the training
-loop, however there still challenges like reproducability and model versioning.
+of boilerplate code. Pytorch-Lightning goes a long way to abstract the training
+loop, however there still challenges like reproducibility and model versioning.
 
-The idea of this training tool is to configure training runs throguh
+The idea of this training tool is to configure training runs through
 configuration files and with as little as much boilerplate be able to reuse
 functionality. The configuration files can be easily differenced visually and
-saved to the trained model.
+saved to the trained model. The configuration is handled through
+[Hydra](hydra.cc) and hence supports it's tooling for configuration management.
+Hydra allows for composable configuration, which is utilized through this
+training tool.
 
 The implementation is built around the fact that python can do dynamic imports
 and instantiation at runtime. Within the configuration file the object to be
-instantiated are given. As an example, a LightningModule can be defined as follows:
+instantiated are given. As an example, a LightningModule can be defined as
+follows:
 
 ```
 module:
   network:
-    name: image_classification.network.MNISTNet
+    _target_: image_classification.network.CIFAR10Net
   loss:
-    name: torch.nn.CrossEntropyLoss
+    _target_: image_classification.losses.FocalLoss
+    gamma: 2
   optimizer:
-    name: torch.optim.Adam
-    kwargs:
-      lr: 0.01
+    _target_: torch.optim.Adam
+    lr: 0.01
   lr_scheduler:
-    name: torch.optim.lr_scheduler.ReduceLROnPlateau
-    monitor: "val_loss"
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  monitor: "val_loss"
 ```
 
 To change the `Adam` optimizer to another one only need to replace the
@@ -37,32 +41,13 @@ updated optimizer dictonary would look like:
 
 ```
   optimizer:
-    name: adabelief_pytorch.AdaBelief
-    kwargs:
-      lr: 0.01
+    _target_: adabelief_pytorch.AdaBelief
+    lr: 0.01
 ```
 
 Note that the `adabelief_pytorch` python package needs to be installed in the
 environment.
 
-Easy changing/overview of hyperparameters is supported through yaml references:
-
-```
-hyperparameters:
-    lr &lr: 0.02
-
-module:
-    optimizer:
-        name: torch.optim.Adam
-        kwargs:
-            lr: *lr
-```
-
-This also opens up for configurable hyperparameter search (not yet implemented).
-Given a set of hyperparameters one can generate configuration files and schedule
-as many runs as one wants with a single call. The outputs of these runs are
-then saved alongside logged metrics and the configuration file used and can
-later be visualized and compared with eg. TensorBoard.
 
 **Disclaimer:** The implementation is my own (unless otherwise stated), but the
 different ideas and techniques are consolidated from different sources.

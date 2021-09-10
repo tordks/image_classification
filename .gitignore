@@ -6,3 +6,4 @@ lightning_logs
 mlruns
 .vscode
 *.code-workspace
+logs

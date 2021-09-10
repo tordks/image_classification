@@ -1,4 +1,5 @@
-from image_classification.util import dynamic_loader
+import hydra
+from omegaconf import DictConfig
 import pytorch_lightning as pl
 from typing import Union
 from torch.nn import Module
@@ -13,20 +14,17 @@ ModuleType = Union[Module, pl.LightningModule]
 
 
 class ImageClassificationModule(pl.LightningModule):
-    def __init__(self, config):
-        """
-        Module for performing image classification.
-        """
-        # TODO: Define config conventions through eg. pydantic
+    def __init__(self, config: DictConfig):
         super().__init__()
         self.config = config
-        self.network = dynamic_loader(self.config["network"])
+        self.network = hydra.utils.instantiate(self.config.network)
 
     def setup(self, stage):
         """
         Sets up the state
         """
-        self.loss = dynamic_loader(self.config["loss"])
+        # TODO: setup vs __init__
+        self.loss = hydra.utils.instantiate(self.config.loss)
 
     def forward(self, x):
         return self.network(x)
@@ -65,20 +63,18 @@ class ImageClassificationModule(pl.LightningModule):
         """
         Configure optimizer and scheduler
         """
-        optimizer = dynamic_loader(
-            self.config["optimizer"], extra_args=[self.network.parameters()]
+        optimizer = hydra.utils.instantiate(
+            self.config.optimizer, self.network.parameters()
         )
         configuration = {"optimizer": optimizer}
 
         if "lr_scheduler" in self.config:
-            lr_scheduler = dynamic_loader(
-                self.config["lr_scheduler"], extra_args=[optimizer]
+            lr_scheduler = hydra.utils.instantiate(
+                self.config.lr_scheduler, optimizer
             )
             configuration["lr_scheduler"] = lr_scheduler
 
-            if "monitor" in self.config["lr_scheduler"]:
-                configuration["monitor"] = self.config["lr_scheduler"][
-                    "monitor"
-                ]
+            if "monitor" in self.config:
+                configuration["monitor"] = self.config.monitor
 
         return configuration

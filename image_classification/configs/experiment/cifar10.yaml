@@ -1,0 +1,19 @@
+name: cifar10
+
+module:
+  network:
+    _target_: image_classification.network.CIFAR10Net
+  loss:
+    _target_: image_classification.losses.FocalLoss
+    gamma: 2
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 0.01
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  monitor: "val_loss"
+
+data:
+  _target_: image_classification.data.CIFAR10DataModule
+  data_dir: ${data_dir}
+  download: true
