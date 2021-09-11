@@ -1,51 +1,46 @@
-import click
+import hydra
+from omegaconf import DictConfig
 import onnx
 from pathlib import Path
 import pytorch_lightning as pl
-from ruamel.yaml import YAML
 
-from image_classification.util import dynamic_loader
 from image_classification.imageclsmodule import ImageClassificationModule
 
 
-@click.command()
-@click.argument("config")
-def train(config):
+def train(config: DictConfig):
+    """
+    Pipeline for trianing an image classification model
+    """
+    # TODO: add check of required keys in config.
 
-    # TODO: Wrap config in a predictable, typed object, eg. using pydantic
-    config = YAML().load(Path(config).read_text())
-    seed = config["seed"]
-
-    if seed is not None:
-        pl.seed_everything(seed, workers=True)
+    if "seed" in config:
+        pl.seed_everything(config["seed"], workers=True)
 
     # Set up data
-    data = dynamic_loader(config["data"])
+    data: pl.LightningDataModule = hydra.utils.instantiate(
+        config.experiment.data
+    )
 
     # Set up training
     callbacks = [
-        dynamic_loader(attribute_config)
-        for _, attribute_config in config["callbacks"].items()
+        hydra.utils.instantiate(callback)
+        for _, callback in config.callbacks.items()
     ]
 
-    training_logger = dynamic_loader(config["training_logger"])
+    training_logger = hydra.utils.instantiate(config.training_logger)
     log_dir = Path(training_logger.log_dir)
 
-    trainer = dynamic_loader(
-        config["trainer"],
-        extra_kwargs={"logger": training_logger, "callbacks": callbacks},
+    trainer = hydra.utils.instantiate(
+        config.trainer,
+        logger=training_logger,
+        callbacks=callbacks,
     )
 
-    model = ImageClassificationModule(config["module"])
+    model: pl.LightningModule = ImageClassificationModule(
+        config.experiment.module
+    )
 
     # Train
-
-    #  log_dir is automatically created during fit, but want to save
-    #  config before fit is called.
-    log_dir.mkdir()
-    with open(log_dir / "config.yaml", "w") as fp:
-        YAML().dump(config, fp)
-
     trainer.fit(model, data)
     trainer.test(model, data)
 
@@ -65,5 +60,10 @@ def train(config):
     onnx.checker.check_model(onnx_model)
 
 
+@hydra.main(config_path="./configs/", config_name="config")
+def run(config: DictConfig):
+    train(config)
+
+
 if __name__ == "__main__":
-    train()
+    run()

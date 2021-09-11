@@ -1,0 +1,11 @@
+defaults:
+  - experiment: mnist
+  - common.yaml
+
+hydra:
+  run:
+    dir: logs/${experiment.name}/${now:%Y-%m-%d_%H%M%S}/
+
+# hydra highjacks workdir, save the original one.
+work_dir: ${hydra:runtime.cwd}
+data_dir: ${work_dir}/data/

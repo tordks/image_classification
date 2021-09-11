@@ -1,0 +1,18 @@
+name: mnist
+
+module:
+  network:
+    _target_: image_classification.network.MNISTNet
+  loss:
+    _target_: torch.nn.CrossEntropyLoss
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 0.01
+  lr_scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  monitor: "val_loss"
+
+data:
+  _target_: image_classification.data.MNISTDataModule
+  data_dir: ${data_dir}
+  download: true
