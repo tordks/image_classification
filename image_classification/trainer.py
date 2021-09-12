@@ -1,15 +1,25 @@
+from copy import deepcopy
+from typing import Optional
+
 import hydra
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 import onnx
 from pathlib import Path
 import pytorch_lightning as pl
+from pytorch_lightning.utilities.parsing import AttributeDict
 
 from image_classification.imageclsmodule import ImageClassificationModule
+from image_classification.utils import (
+    deep_get,
+    simplify_search_space_key,
+    simplify_search_space_value,
+)
 
 
-def train(config: DictConfig):
+def train(config: DictConfig, hyperparameters: Optional[dict] = None):
     """
-    Pipeline for trianing an image classification model
+    Pipeline for training an image classification model
     """
     # TODO: add check of required keys in config.
 
@@ -17,9 +27,7 @@ def train(config: DictConfig):
         pl.seed_everything(config["seed"], workers=True)
 
     # Set up data
-    data: pl.LightningDataModule = hydra.utils.instantiate(
-        config.experiment.data
-    )
+    data: pl.LightningDataModule = hydra.utils.instantiate(config.data)
 
     # Set up training
     callbacks = [
@@ -36,13 +44,19 @@ def train(config: DictConfig):
         callbacks=callbacks,
     )
 
-    model: pl.LightningModule = ImageClassificationModule(
-        config.experiment.module
-    )
+    model: pl.LightningModule = ImageClassificationModule(config.module)
+    if hyperparameters:
+        # Could (or maybe should) set these in the pl Module, but there are
+        # hparams that are not inside the module, eg. batch size. So this seems
+        # more appropriate
+        model._set_hparams(AttributeDict(hyperparameters))
+        model._hparams_initial = deepcopy(model._hparams)
 
     # Train
     trainer.fit(model, data)
-    trainer.test(model, data)
+    # NOTE: Enabling the test run overwrites the hp_metric from the validation
+    # run.
+    # trainer.test(model, data)
 
     input_sample = data.train[0]["feature"]
     input_sample = input_sample.reshape((1, *input_sample.shape))
@@ -59,10 +73,28 @@ def train(config: DictConfig):
     onnx_model = onnx.load(model_path)
     onnx.checker.check_model(onnx_model)
 
+    metric_to_optimize = config.get("metric_to_optimize")
+    if metric_to_optimize is not None:
+        if metric_to_optimize not in trainer.callback_metrics:
+            raise ValueError(f"{metric_to_optimize} no available for hp search")
+        return trainer.callback_metrics[metric_to_optimize]
+
 
 @hydra.main(config_path="./configs/", config_name="config")
 def run(config: DictConfig):
-    train(config)
+    search_space = HydraConfig.get().sweeper.search_space
+    if search_space:
+        hyperparameters = {
+            simplify_search_space_key(hparam): simplify_search_space_value(
+                deep_get(config, hparam)
+            )
+            for hparam in search_space
+        }
+        train_result = train(config, hyperparameters=hyperparameters)
+    else:
+        train_result = train(config)
+
+    return train_result
 
 
 if __name__ == "__main__":

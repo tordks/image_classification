@@ -1,8 +1,10 @@
 import hydra
 from omegaconf import DictConfig
 import pytorch_lightning as pl
+
 from typing import Union
 from torch.nn import Module
+from torchmetrics import Metric
 
 # TODO: weight loss based on class weights from datamodule
 # TODO: weigh loss based on class compatibility
@@ -25,6 +27,10 @@ class ImageClassificationModule(pl.LightningModule):
         """
         # TODO: setup vs __init__
         self.loss = hydra.utils.instantiate(self.config.loss)
+        self.validation_metrics: list[Metric] = {
+            name: hydra.utils.instantiate(metric)
+            for name, metric in self.config.validation_metrics.items()
+        }
 
     def forward(self, x):
         return self.network(x)
@@ -47,6 +53,27 @@ class ImageClassificationModule(pl.LightningModule):
         logits = self.network(batch["feature"])
         loss = self.loss(logits, batch["label"])
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
+
+        for metric_name, metric in self.validation_metrics.items():
+            metric_value = metric(logits, batch["label"])
+            if metric_name == self.config.hp_metric:
+                # The hp_metric is the default name which is propagated in to
+                # the hp dashboard.
+                self.log(
+                    "hp_metric",
+                    metric_value,
+                    on_step=False,
+                    on_epoch=True,
+                    logger=True,
+                )
+            self.log(
+                metric_name,
+                metric_value,
+                on_step=False,
+                on_epoch=True,
+                logger=True,
+            )
+
         return {"batch_idx": batch_idx, "val_loss": loss}
 
     def test_step(self, batch, batch_idx):
