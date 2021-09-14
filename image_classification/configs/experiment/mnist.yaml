@@ -1,18 +1,33 @@
-name: mnist
+# @package _global_
+
+experiment_name: mnist
+
+num_classes: &num_classes 10
+metric_to_optimize: &metric_to_optimize "val_f1"
 
 module:
   network:
     _target_: image_classification.network.MNISTNet
   loss:
-    _target_: torch.nn.CrossEntropyLoss
+    _target_: image_classification.losses.FocalLoss
+    gamma: 2
   optimizer:
     _target_: torch.optim.Adam
     lr: 0.01
   lr_scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  validation_metrics:
+    val_f1:
+      _target_: torchmetrics.F1
+      num_classes: *num_classes
+    val_accuracy:
+      _target_: torchmetrics.Accuracy
+      num_classes: *num_classes
   monitor: "val_loss"
+  hp_metric: *metric_to_optimize
 
 data:
   _target_: image_classification.data.MNISTDataModule
   data_dir: ${data_dir}
+  batch_size: 32
   download: true

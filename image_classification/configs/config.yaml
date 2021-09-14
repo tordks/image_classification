@@ -1,10 +1,14 @@
 defaults:
-  - experiment: mnist
   - common.yaml
+  - hp_search: null
+  - experiment: mnist
 
 hydra:
   run:
-    dir: logs/${experiment.name}/${now:%Y-%m-%d_%H%M%S}/
+    dir: logs/${experiment_name}/run/${now:%Y-%m-%d_%H%M%S}/
+  sweep:
+    dir: logs/${experiment_name}/multirun/${now:%Y-%m-%d_%H%M%S}/
+    subdir: ${hydra.job.num}
 
 # hydra highjacks workdir, save the original one.
 work_dir: ${hydra:runtime.cwd}
