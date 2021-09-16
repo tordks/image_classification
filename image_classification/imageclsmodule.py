@@ -9,8 +9,6 @@ from torchmetrics import Metric
 # TODO: weight loss based on class weights from datamodule
 # TODO: weigh loss based on class compatibility
 # TODO: adaptively weigh hard samples more than easy samples
-# TODO: add augmentations as inputs
-# TODO: add visualization of test/validation images
 
 ModuleType = Union[Module, pl.LightningModule]
 
@@ -31,6 +29,10 @@ class ImageClassificationModule(pl.LightningModule):
             name: hydra.utils.instantiate(metric)
             for name, metric in self.config.validation_metrics.items()
         }
+
+        self.validation_visualization = hydra.utils.instantiate(
+            self.config.validation_visualization
+        )
 
     def forward(self, x):
         return self.network(x)
@@ -74,6 +76,9 @@ class ImageClassificationModule(pl.LightningModule):
                 logger=True,
             )
 
+        self.validation_visualization(
+            batch, batch_idx, self.global_step, self.logger.experiment
+        )
         return {"batch_idx": batch_idx, "val_loss": loss}
 
     def test_step(self, batch, batch_idx):

@@ -26,6 +26,25 @@ module:
   monitor: "val_loss"
   hp_metric: *metric_to_optimize
 
+  validation_visualization:
+    _target_: image_classification.visualization.VisualizationBlock
+    every_n_batch: 10 #  ${data.batch_size}
+    stage: validation
+    plot:
+      _target_: image_classification.visualization.Figure
+      identifier: feature
+      plot:
+        _target_: image_classification.visualization.Plot
+        plotter: imshow
+        target: feature
+        preprocessing:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: image_classification.transforms.FunctionTransform
+              function_path: torch.squeeze
+            - _target_: image_classification.transforms.LambdaTransform
+              expression: "x.numpy()"
+
 data:
   _target_: image_classification.data.MNISTDataModule
   data_dir: ${data_dir}
