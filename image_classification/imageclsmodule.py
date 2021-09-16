@@ -55,7 +55,8 @@ class ImageClassificationModule(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
 
         for metric_name, metric in self.validation_metrics.items():
-            metric_value = metric(logits, batch["label"])
+            metric.to(prediction.device)
+            metric_value = metric(prediction, batch["label"])
             if metric_name == self.config.hp_metric:
                 # The hp_metric is the default name which is propagated in to
                 # the hp dashboard.
