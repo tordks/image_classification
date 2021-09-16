@@ -1,3 +1,4 @@
+from image_classification.metrics import MetricsWrapper
 import hydra
 from omegaconf import DictConfig
 import pytorch_lightning as pl
@@ -34,6 +35,7 @@ class ImageClassificationModule(pl.LightningModule):
                 name: hydra.utils.instantiate(metric)
                 for name, metric in self.config.training_metrics.items()
             }
+            self.setup_metrics(self.training_metrics)
 
         self.validation_metrics = {}
         if "validation_metrics" in self.config:
@@ -41,6 +43,13 @@ class ImageClassificationModule(pl.LightningModule):
                 name: hydra.utils.instantiate(metric)
                 for name, metric in self.config.validation_metrics.items()
             }
+            self.setup_metrics(self.validation_metrics)
+
+    def setup_metrics(self, metrics):
+        for metric_name, metric in metrics.items():
+            if not isinstance(metric, MetricsWrapper):
+                metric = MetricsWrapper(metric)
+                metrics[metric_name] = metric
 
     def forward(self, x):
         return self.network(x)
