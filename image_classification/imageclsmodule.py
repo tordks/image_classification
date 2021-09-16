@@ -40,8 +40,8 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
-        logits = self.network(batch["feature"])
-        loss = self.loss(logits, batch["label"])
+        prediction = self.network(batch["feature"])
+        loss = self.loss(prediction, batch["label"])
         self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
         return {"batch_idx": batch_idx, "loss": loss}
 
@@ -50,8 +50,8 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
-        logits = self.network(batch["feature"])
-        loss = self.loss(logits, batch["label"])
+        prediction = self.network(batch["feature"])
+        loss = self.loss(prediction, batch["label"])
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
 
         for metric_name, metric in self.validation_metrics.items():
@@ -81,8 +81,8 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
-        logits = self.network(batch["feature"])
-        loss = self.loss(logits, batch["label"])
+        prediction = self.network(batch["feature"])
+        loss = self.loss(prediction, batch["label"])
         self.log("test_loss", loss, on_step=False, on_epoch=True, logger=True)
         return {"batch_idx": batch_idx, "test_loss": loss}
 
