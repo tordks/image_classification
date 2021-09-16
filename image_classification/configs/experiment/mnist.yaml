@@ -16,12 +16,13 @@ module:
     lr: 0.01
   lr_scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  training_metrics:
+    train_f1:
+      _target_: torchmetrics.F1
+      num_classes: *num_classes
   validation_metrics:
     val_f1:
       _target_: torchmetrics.F1
-      num_classes: *num_classes
-    val_accuracy:
-      _target_: torchmetrics.Accuracy
       num_classes: *num_classes
   monitor: "val_loss"
   hp_metric: *metric_to_optimize

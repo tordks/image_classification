@@ -3,6 +3,7 @@ from omegaconf import DictConfig
 import pytorch_lightning as pl
 
 from typing import Union
+from torch.functional import Tensor
 from torch.nn import Module
 from torchmetrics import Metric
 
@@ -27,13 +28,41 @@ class ImageClassificationModule(pl.LightningModule):
         """
         # TODO: setup vs __init__
         self.loss = hydra.utils.instantiate(self.config.loss)
-        self.validation_metrics: list[Metric] = {
-            name: hydra.utils.instantiate(metric)
-            for name, metric in self.config.validation_metrics.items()
-        }
+        self.training_metrics = {}
+        if "training_metrics" in self.config:
+            self.training_metrics: dict[str, Metric] = {
+                name: hydra.utils.instantiate(metric)
+                for name, metric in self.config.training_metrics.items()
+            }
+
+        self.validation_metrics = {}
+        if "validation_metrics" in self.config:
+            self.validation_metrics: dict[str, Metric] = {
+                name: hydra.utils.instantiate(metric)
+                for name, metric in self.config.validation_metrics.items()
+            }
 
     def forward(self, x):
         return self.network(x)
+
+    def update_metrics(
+        self, metrics: dict[str, Metric], prediction: Tensor, label: Tensor
+    ):
+        for metric in metrics.values():
+            metric.to(prediction.device)
+            # NOTE: assume, all metrics only take in prediction/label as args.
+            metric.update(prediction, label)
+
+    def log_metrics(self, metrics: list[Metric]):
+        for metric_name, metric in metrics.items():
+            metric_value = metric.compute()
+            if metric_name == self.config.hp_metric:
+                # The hp_metric is the default name which is propagated in to
+                # the hp dashboard.
+                self.log("hp_metric", metric_value, logger=True)
+            self.log(metric_name, metric_value, logger=True)
+
+            metric.reset()
 
     def training_step(self, batch, batch_idx):
         """
@@ -43,6 +72,8 @@ class ImageClassificationModule(pl.LightningModule):
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
         self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
+        self.update_metrics(self.training_metrics, prediction, batch["label"])
+
         return {"batch_idx": batch_idx, "loss": loss}
 
     def validation_step(self, batch, batch_idx):
@@ -53,29 +84,15 @@ class ImageClassificationModule(pl.LightningModule):
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
-
-        for metric_name, metric in self.validation_metrics.items():
-            metric.to(prediction.device)
-            metric_value = metric(prediction, batch["label"])
-            if metric_name == self.config.hp_metric:
-                # The hp_metric is the default name which is propagated in to
-                # the hp dashboard.
-                self.log(
-                    "hp_metric",
-                    metric_value,
-                    on_step=False,
-                    on_epoch=True,
-                    logger=True,
-                )
-            self.log(
-                metric_name,
-                metric_value,
-                on_step=False,
-                on_epoch=True,
-                logger=True,
-            )
+        self.update_metrics(self.validation_metrics, prediction, batch["label"])
 
         return {"batch_idx": batch_idx, "val_loss": loss}
+
+    def on_train_epoch_end(self):
+        self.log_metrics(self.training_metrics)
+
+    def on_validation_epoch_end(self):
+        self.log_metrics(self.validation_metrics)
 
     def test_step(self, batch, batch_idx):
         """
