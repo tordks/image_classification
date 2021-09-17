@@ -1,7 +1,7 @@
 defaults:
+  - experiment: mnist
   - common.yaml
   - hp_search: null
-  - experiment: mnist
 
 hydra:
   run:

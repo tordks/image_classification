@@ -3,10 +3,10 @@
 experiment_name: mnist
 
 num_classes: &num_classes 10
+# NOTE: this entry is assumed to be present
 metric_to_optimize: &metric_to_optimize "val_f1"
 
 module:
-  classes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   network:
     _target_: image_classification.network.MNISTNet
   loss:
