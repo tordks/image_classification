@@ -6,8 +6,8 @@ class MetricsWrapper(torchmetrics.Metric):
     def __init__(self, metric: torchmetrics.Metric, log: bool = True):
         """
         Wrapper around metrics. Adds some metainformation for easier controlling
-        which are logged as scalars and which need special hendling. Example of
-        a metrics that cannot be logged directly is the confusion matrics.
+        which are logged as scalars and which need special handling. Example of
+        a metrics that cannot be logged directly is the confusion matrix.
         """
         super().__init__()
         self.metric = metric

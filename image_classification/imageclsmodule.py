@@ -9,6 +9,8 @@ from torch.nn import Module
 from torchmetrics import Metric
 
 from image_classification.metrics import MetricsWrapper
+from image_classification.utils import prepare_targets
+from image_classification.visualization import Stage
 
 
 # TODO: weight loss based on class weights from datamodule
@@ -22,23 +24,30 @@ from image_classification.metrics import MetricsWrapper
 ModuleType = Union[Module, pl.LightningModule]
 
 
+# TODO: consider refactoring helper functions to make the class more readable
 class ImageClassificationModule(pl.LightningModule):
     def __init__(self, config: DictConfig):
         super().__init__()
         self.config = config
         self.network = hydra.utils.instantiate(self.config.network)
+        self.visualizations = []
         self.training_metrics = {}
         self.validation_metrics = {}
 
+    # TODO: setup vs __init__. Where is the proper place for the network?
     def setup(self, stage):
         """
-        Sets up the state
+        Sets up the Module state
         """
-        # TODO: setup vs __init__
         self.loss = hydra.utils.instantiate(self.config.loss)
         self.setup_metrics()
+        self.setup_visualization()
 
     def setup_metrics(self):
+        """
+        Instantates all metrics and wraps all metrics in a MetricsWrapper
+        """
+
         def wrap_metrics(metrics):
             for metric_name, metric in metrics.items():
                 if not isinstance(metric, MetricsWrapper):
@@ -58,6 +67,39 @@ class ImageClassificationModule(pl.LightningModule):
                 for name, metric in self.config.validation_metrics.items()
             }
             wrap_metrics(self.validation_metrics)
+
+    def setup_visualization(self):
+        """
+        Instantiates all visualizations
+        """
+        if "visualization" in self.config:
+            for plotter_config in self.config.visualization:
+                plotter = hydra.utils.instantiate(plotter_config)
+                self.visualizations.append(plotter)
+
+    def visualize(self, data: dict[str], stage: Stage, step: int):
+        """
+        Create all visualizations for the specified stage.
+
+        :param data: Data available for us in the visualization
+        :param stage: The stage from which this is called
+        :param step: The current step. Meaning depends on stage
+        """
+        for plotter in self.visualizations:
+            if plotter.stage == stage and step % plotter.every_n == 0:
+
+                plot_data = prepare_targets(data, plotter.targets)
+
+                for key, value in plot_data.items():
+                    if isinstance(value, Metric):
+                        plot_data[key] = value.compute()
+
+                figure = plotter.plot(**plot_data)
+                self.logger.experiment.add_figure(
+                    f"{stage.value}/{plotter.identifier}",
+                    figure,
+                    self.global_step,
+                )
 
     def forward(self, x):
         return self.network(x)
@@ -111,6 +153,11 @@ class ImageClassificationModule(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         self.log_metrics(self.validation_metrics)
+        self.visualize(
+            data=self.validation_metrics,
+            stage=Stage.on_validation_epoch_end,
+            step=self.current_epoch,
+        )
 
     def test_step(self, batch, batch_idx):
         """

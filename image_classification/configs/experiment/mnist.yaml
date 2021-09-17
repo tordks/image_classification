@@ -6,6 +6,7 @@ num_classes: &num_classes 10
 metric_to_optimize: &metric_to_optimize "val_f1"
 
 module:
+  classes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   network:
     _target_: image_classification.network.MNISTNet
   loss:
@@ -24,8 +25,26 @@ module:
     val_f1:
       _target_: torchmetrics.F1
       num_classes: *num_classes
+    val_cm:
+      _target_: image_classification.metrics.MetricsWrapper
+      log: false
+      metric:
+        _target_: torchmetrics.ConfusionMatrix
+        num_classes: *num_classes
+        normalize: "true"
   monitor: "val_loss"
   hp_metric: *metric_to_optimize
+
+  visualization:
+    - _target_: image_classification.visualization.Figure
+      stage: on_validation_epoch_end
+      identifier: confusion_matrix
+      plotter:
+        _target_: image_classification.visualization.ConfusionMatrixPlotter
+      targets: {val_cm: confusion_matrix}
+      input_ax: true
+      figure_kwargs:
+        figsize: [8, 8]
 
 data:
   _target_: image_classification.data.MNISTDataModule
