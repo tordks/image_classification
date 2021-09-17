@@ -1,18 +1,23 @@
-from image_classification.metrics import MetricsWrapper
+from typing import Union
+
 import hydra
 from omegaconf import DictConfig
 import pytorch_lightning as pl
 
-from typing import Union
 from torch.functional import Tensor
 from torch.nn import Module
 from torchmetrics import Metric
+
+from image_classification.metrics import MetricsWrapper
+
 
 # TODO: weight loss based on class weights from datamodule
 # TODO: weigh loss based on class compatibility
 # TODO: adaptively weigh hard samples more than easy samples
 # TODO: add augmentations as inputs
-# TODO: add visualization of test/validation images
+# TODO: consider separating out setup functions to make class more readable.
+# TODO: Find a way to get an easy overview of the class state, ie. which self
+#       variables exist and the config.
 
 ModuleType = Union[Module, pl.LightningModule]
 
@@ -22,6 +27,8 @@ class ImageClassificationModule(pl.LightningModule):
         super().__init__()
         self.config = config
         self.network = hydra.utils.instantiate(self.config.network)
+        self.training_metrics = {}
+        self.validation_metrics = {}
 
     def setup(self, stage):
         """
@@ -29,27 +36,28 @@ class ImageClassificationModule(pl.LightningModule):
         """
         # TODO: setup vs __init__
         self.loss = hydra.utils.instantiate(self.config.loss)
-        self.training_metrics = {}
+        self.setup_metrics()
+
+    def setup_metrics(self):
+        def wrap_metrics(metrics):
+            for metric_name, metric in metrics.items():
+                if not isinstance(metric, MetricsWrapper):
+                    metric = MetricsWrapper(metric)
+                    metrics[metric_name] = metric
+
         if "training_metrics" in self.config:
             self.training_metrics: dict[str, Metric] = {
                 name: hydra.utils.instantiate(metric)
                 for name, metric in self.config.training_metrics.items()
             }
-            self.setup_metrics(self.training_metrics)
+            wrap_metrics(self.training_metrics)
 
-        self.validation_metrics = {}
         if "validation_metrics" in self.config:
             self.validation_metrics: dict[str, Metric] = {
                 name: hydra.utils.instantiate(metric)
                 for name, metric in self.config.validation_metrics.items()
             }
-            self.setup_metrics(self.validation_metrics)
-
-    def setup_metrics(self, metrics):
-        for metric_name, metric in metrics.items():
-            if not isinstance(metric, MetricsWrapper):
-                metric = MetricsWrapper(metric)
-                metrics[metric_name] = metric
+            wrap_metrics(self.validation_metrics)
 
     def forward(self, x):
         return self.network(x)
@@ -64,14 +72,15 @@ class ImageClassificationModule(pl.LightningModule):
 
     def log_metrics(self, metrics: list[Metric]):
         for metric_name, metric in metrics.items():
-            metric_value = metric.compute()
-            if metric_name == self.config.hp_metric:
-                # The hp_metric is the default name which is propagated in to
-                # the hp dashboard.
-                self.log("hp_metric", metric_value, logger=True)
-            self.log(metric_name, metric_value, logger=True)
+            if metric.log:
+                metric_value = metric.compute()
+                if metric_name == self.config.hp_metric:
+                    # The hp_metric is the default name which is propagated in
+                    # to the hp dashboard.
+                    self.log("hp_metric", metric_value, logger=True)
+                self.log(metric_name, metric_value, logger=True)
 
-            metric.reset()
+                metric.reset()
 
     def training_step(self, batch, batch_idx):
         """
