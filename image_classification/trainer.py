@@ -82,8 +82,9 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
 
 @hydra.main(config_path="./configs/", config_name="config")
 def run(config: DictConfig):
-    search_space = HydraConfig.get().sweeper.search_space
-    if search_space:
+    hydra_config = HydraConfig.get()
+    if "sweeper" in hydra_config and "search_space" in hydra_config.sweeper:
+        search_space = hydra_config.sweeper.search_space
         hyperparameters = {
             simplify_search_space_key(hparam): simplify_search_space_value(
                 deep_get(config, hparam)

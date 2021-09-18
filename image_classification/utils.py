@@ -54,3 +54,16 @@ def simplify_search_space_value(value: Union[str, int, float]):
         return value.split(".")[-1]
     else:
         return value
+
+
+def prepare_targets(data: dict[str], target_mapping: dict[str, str]):
+    """
+    Fetches the values from keys in a data dictionary and saves them to a new
+    dict with the assigned new key.
+    """
+    targets = {}
+    for key, new_key in target_mapping.items():
+        if key in data:
+            targets[new_key] = data[key]
+
+    return targets
