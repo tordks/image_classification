@@ -56,5 +56,5 @@ data:
       mean: [0.1307]
       std: [0.3081]
   batch_size: 32
-  num_workers: 6
+  num_workers: 20
   download: true
