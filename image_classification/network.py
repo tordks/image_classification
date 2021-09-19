@@ -23,7 +23,7 @@ class MNISTNet(nn.Module):
         x = x.view(-1, 4 * 4 * 50)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return x
 
 
 class CIFAR10Net(nn.Module):
