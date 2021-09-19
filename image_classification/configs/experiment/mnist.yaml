@@ -12,6 +12,7 @@ module:
   loss:
     _target_: image_classification.losses.FocalLoss
     gamma: 2
+    reduction: "mean"
   optimizer:
     _target_: torch.optim.Adam
     lr: 0.01
