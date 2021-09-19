@@ -211,9 +211,15 @@ class ImageClassificationModule(pl.LightningModule):
             lr_scheduler = hydra.utils.instantiate(
                 self.config.lr_scheduler, optimizer
             )
-            configuration["lr_scheduler"] = lr_scheduler
+            configuration["lr_scheduler"] = {"scheduler": lr_scheduler}
 
             if "monitor" in self.config:
-                configuration["monitor"] = self.config.monitor
+                configuration["lr_scheduler"]["monitor"] = self.config.monitor
+
+            # TODO: consider loading the scheduler dict directly from conf.
+            # Still need to insert optimizer two places though, but it will be
+            # more clear where monitor and interval is used.
+            if "interval" in self.config:
+                configuration["lr_scheduler"]["interval"] = self.config.interval
 
         return configuration
