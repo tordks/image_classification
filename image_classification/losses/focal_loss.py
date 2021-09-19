@@ -8,9 +8,9 @@ from torch import nn
 def focal_loss(
     prediction: torch.Tensor,
     label: torch.Tensor,
-    class_weights: Optional[torch.Tensor] = None,
     gamma: float = 2.0,
-    reduction: str = "none",
+    class_weights: Optional[torch.Tensor] = None,
+    reduction: Optional[str] = None,
 ) -> torch.Tensor:
     """
     Focal loss for multi-class classification.
@@ -21,27 +21,30 @@ def focal_loss(
 
     Based on https://github.com/zhezh/focalloss/blob/master/focalloss.py
 
-    :param prediction: unnormalized prediction from network
-    :param label: ground truth label
+    :param prediction: unnormalized prediction from network (N, C)
+    :param label: ground truth label, (N,)
     :param class_weights: alpha in paper. Weights to balance classes.
     :param gamma: focusing parameter.
     :param reduction: method to reduce batch loss, mean or sum
     """
 
     eps = 1e-8
+
     prediction = F.softmax(prediction, dim=1) + eps
+
     label_ohe = torch.nn.functional.one_hot(
         label, num_classes=prediction.shape[1]
-    ).to(float)
+    )
+
     weight = torch.pow(-prediction + 1.0, gamma)
 
     if class_weights is None:
-        class_weights = torch.ones_like(weight)
+        class_weights = 1
 
     focal = -class_weights * weight * torch.log(prediction)
     loss = torch.sum(label_ohe * focal, dim=1)
 
-    if reduction == "none":
+    if reduction is None:
         loss = loss
     elif reduction == "mean":
         loss = torch.mean(loss)
@@ -64,9 +67,9 @@ class FocalLoss(nn.Module):
 
     def __init__(
         self,
-        class_weights: Optional[torch.Tensor] = None,
         gamma: float = 2,
-        reduction: str = "mean",
+        class_weights: Optional[torch.Tensor] = None,
+        reduction: Optional[str] = None,
     ):
         super().__init__()
         self.class_weights = class_weights
@@ -77,7 +80,7 @@ class FocalLoss(nn.Module):
         return focal_loss(
             prediction,
             label,
-            self.class_weights,
-            self.gamma,
-            self.reduction,
+            gamma=self.gamma,
+            class_weights=self.class_weights,
+            reduction=self.reduction,
         )
