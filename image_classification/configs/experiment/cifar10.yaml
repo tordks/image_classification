@@ -11,6 +11,7 @@ module:
   loss:
     _target_: image_classification.losses.FocalLoss
     gamma: 2
+    reduction: "mean"
   optimizer:
     _target_: torch.optim.Adam
     lr: 0.01
@@ -34,7 +35,25 @@ module:
   monitor: "val_loss"
   hp_metric: *metric_to_optimize
 
+  visualization:
+    - _target_: image_classification.visualization.Figure
+      stage: on_validation_epoch_end
+      identifier: confusion_matrix
+      plotter:
+        _target_: image_classification.visualization.ConfusionMatrixPlotter
+      targets: { val_cm: confusion_matrix }
+      input_ax: true
+      figure_kwargs:
+        figsize: [8, 8]
+
 data:
   _target_: image_classification.data.CIFAR10DataModule
   data_dir: ${data_dir}
+  transform:
+    - _target_: torchvision.transforms.ToTensor
+    - _target_: torchvision.transforms.Normalize
+      mean: [0.4914, 0.4822, 0.4465]
+      std: [0.2023, 0.1994, 0.2010]
+  batch_size: 32
+  num_workers: 20
   download: true

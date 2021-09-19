@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import pytorch_lightning as pl
 from torch.utils.data.dataset import random_split
@@ -13,7 +13,7 @@ from torchvision import transforms
 # TODO: make an abstraction for the datamodule
 #    * one datamodule which supports multiple
 #    * add train transformation as an input
-# TODO: make typed object that represent the batch
+# TODO: make typed object that represent the item in a batch
 
 
 class CIFAR10(torchvision.datasets.CIFAR10):
@@ -24,22 +24,24 @@ class CIFAR10(torchvision.datasets.CIFAR10):
     def __getitem__(self, index: int):
         feature_key = "feature"
         label_key = "label"
-        batch = {
+        item = {
             key: value
             for key, value in zip(
                 (feature_key, label_key), super().__getitem__(index)
             )
         }
-        return batch
+        return item
 
 
 class CIFAR10DataModule(pl.LightningDataModule):
     def __init__(
         self,
         data_dir: Path,
-        batch_size: int = 32,
-        num_workers: int = 6,
         download: bool = False,
+        transform: Optional[list[Callable]] = None,
+        target_transform: Optional[list[Callable]] = None,
+        batch_size: int = 32,
+        num_workers: int = 1,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -47,20 +49,22 @@ class CIFAR10DataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.download = download
 
-        self.transforms = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                ),
-            ]
-        )
+        self.transform = transform
+        if transform is not None:
+            self.transform = transforms.Compose(transform)
+        else:
+            transform = transforms.ToTensor()
+
+        self.target_transform = target_transform
+        if target_transform is not None:
+            self.target_transform = transforms.Compose(target_transform)
 
     def setup(self, stage: Optional[str] = None):
         full = CIFAR10(
             self.data_dir,
             train=True,
-            transform=self.transforms,
+            transform=self.transform,
+            target_transform=self.target_transform,
             download=self.download,
         )
         n_samples = int(len(full))
@@ -72,7 +76,8 @@ class CIFAR10DataModule(pl.LightningDataModule):
         self.test = CIFAR10(
             self.data_dir,
             train=False,
-            transform=self.transforms,
+            transform=self.transform,
+            target_transform=self.target_transform,
             download=self.download,
         )
 
@@ -100,22 +105,25 @@ class MNIST(torchvision.datasets.MNIST):
     def __getitem__(self, index: int):
         feature_key = "feature"
         label_key = "label"
-        batch = {
+        item = {
             key: value
             for key, value in zip(
                 (feature_key, label_key), super().__getitem__(index)
             )
         }
-        return batch
+
+        return item
 
 
 class MNISTDataModule(pl.LightningDataModule):
     def __init__(
         self,
         data_dir: Path,
-        batch_size: int = 32,
-        num_workers: int = 6,
         download: bool = False,
+        transform: Optional[list[Callable]] = None,
+        target_transform: Optional[list[Callable]] = None,
+        batch_size: int = 32,
+        num_workers: int = 1,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -123,21 +131,22 @@ class MNISTDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.download = download
 
-        self.transforms = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.1307,),  # mean of entire set
-                    (0.3081,),  # std of entire set
-                ),
-            ]
-        )
+        self.transform = transform
+        if transform is not None:
+            self.transform = transforms.Compose(transform)
+        else:
+            transform = transforms.ToTensor()
+
+        self.target_transform = target_transform
+        if target_transform is not None:
+            self.target_transform = transforms.Compose(target_transform)
 
     def setup(self, stage: Optional[str] = None):
         full = MNIST(
             self.data_dir,
             train=True,
-            transform=self.transforms,
+            transform=self.transform,
+            target_transform=self.target_transform,
             download=self.download,
         )
         n_samples = int(len(full))
@@ -149,7 +158,8 @@ class MNISTDataModule(pl.LightningDataModule):
         self.test = MNIST(
             self.data_dir,
             train=False,
-            transform=self.transforms,
+            transform=self.transform,
+            target_transform=self.target_transform,
             download=self.download,
         )
 
