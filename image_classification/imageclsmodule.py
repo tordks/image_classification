@@ -30,6 +30,17 @@ class ImageClassificationModule(pl.LightningModule):
         super().__init__()
         self.config = config
         self.network = hydra.utils.instantiate(self.config.network)
+
+        self.batch_mapping = None
+        if "batch_mapping" in self.config:
+            if "feature" not in self.config.batch_mapping.values():
+                raise ValueError("'feature' must be in the new batch keys")
+
+            if "label" not in self.config.batch_mapping.values():
+                raise ValueError("'label' must be in the new batch keys")
+
+            self.batch_mapping = self.config.batch_mapping
+
         self.visualizations = []
         self.training_metrics = {}
         self.validation_metrics = {}
@@ -124,11 +135,27 @@ class ImageClassificationModule(pl.LightningModule):
 
                 metric.reset()
 
+    def prepare_batch(self, batch: Union[list, dict]):
+        """
+        When reusing a datamodule someone else have created, the batch output
+        might be on a completely different format than we expect. Map the keys
+        from the batch into the required convention.
+        """
+        if self.batch_mapping is None:
+            return batch
+        else:
+            return {
+                new_key: batch[key]
+                for key, new_key in self.batch_mapping.items()
+            }
+
     def training_step(self, batch, batch_idx):
         """
         :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
+        batch = self.prepare_batch(batch)
+
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
         self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
@@ -141,6 +168,8 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch: dictionary of batch information from dataloader
         :param batch_idx: current batch idx
         """
+        batch = self.prepare_batch(batch)
+
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
