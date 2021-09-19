@@ -1,0 +1,30 @@
+# @package _global_
+
+defaults:
+  - override /hydra/sweeper: optuna
+  - override /hydra/sweeper/sampler: null
+
+hydra:
+  sweeper:
+    _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+    storage: null
+    study_name: null
+    n_jobs: 1
+    direction: maximize
+    n_trials: 10
+
+    sampler:
+      _target_: optuna.samplers.RandomSampler
+
+    search_space:
+      data.batch_size:
+        type: categorical
+        choices: [32, 64, 128, 256]
+      module.lr_scheduler.max_lr:
+        type: float
+        low: 0.001
+        high: 1
+      module.optimizer.momentum:
+        type: float
+        low: 0.1
+        high: 0.9
