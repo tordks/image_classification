@@ -1,5 +1,8 @@
 # @package _global_
 
+# This example is taken from the cifar10 baseline in the pytorch lightning documentation:
+# https://pytorch-lightning.readthedocs.io/en/stable/notebooks/lightning_examples/cifar10-baseline.html
+
 experiment_name: cifar10
 
 num_classes: &num_classes 10
@@ -7,16 +10,29 @@ metric_to_optimize: &metric_to_optimize "val_f1"
 
 module:
   network:
-    _target_: image_classification.network.CIFAR10Net
+    _target_: image_classification.network.create_cifar10_resnet
   loss:
-    _target_: image_classification.losses.FocalLoss
-    gamma: 2
-    reduction: "mean"
+    _target_: torch.nn.CrossEntropyLoss
+
+  batch_mapping:
+    0: feature
+    1: label
+
   optimizer:
-    _target_: torch.optim.Adam
+    _target_: torch.optim.SGD
     lr: 0.01
+    momentum: 0.9
+    weight_decay: 0.00005
+
   lr_scheduler:
-    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    _target_: torch.optim.lr_scheduler.OneCycleLR
+    max_lr: 0.1
+    epochs: ${trainer.max_epochs}
+    steps_per_epoch:
+      _target_: image_classification.utils.evaluate
+      expression: "45000 // ${data.batch_size}"
+  interval: "step"
+
   training_metrics:
     train_f1:
       _target_: torchmetrics.F1
@@ -25,6 +41,9 @@ module:
     val_f1:
       _target_: torchmetrics.F1
       num_classes: *num_classes
+    val_acc:
+      _target_: torchmetrics.Accuracy
+      num_classes: *num_classes
     val_cm:
       _target_: image_classification.metrics.MetricsWrapper
       log: false
@@ -32,8 +51,6 @@ module:
         _target_: torchmetrics.ConfusionMatrix
         num_classes: *num_classes
         normalize: "true"
-  monitor: "val_loss"
-  hp_metric: *metric_to_optimize
 
   visualization:
     - _target_: image_classification.visualization.Figure
@@ -46,14 +63,29 @@ module:
       figure_kwargs:
         figsize: [8, 8]
 
+  hp_metric: *metric_to_optimize
+
 data:
-  _target_: image_classification.data.CIFAR10DataModule
+  _target_: pl_bolts.datamodules.CIFAR10DataModule
   data_dir: ${data_dir}
-  transform:
-    - _target_: torchvision.transforms.ToTensor
-    - _target_: torchvision.transforms.Normalize
-      mean: [0.4914, 0.4822, 0.4465]
-      std: [0.2023, 0.1994, 0.2010]
-  batch_size: 32
+  train_transforms:
+    _target_: torchvision.transforms.Compose
+    transforms:
+      - _target_: torchvision.transforms.RandomCrop
+        _args_: [32]
+        padding: 4
+      - _target_: torchvision.transforms.RandomHorizontalFlip
+      - _target_: torchvision.transforms.ToTensor
+      - _target_: pl_bolts.transforms.dataset_normalizations.cifar10_normalization
+  test_transforms:
+    _target_: torchvision.transforms.Compose
+    transforms:
+      - _target_: torchvision.transforms.ToTensor
+      - _target_: pl_bolts.transforms.dataset_normalizations.cifar10_normalization
+  val_transforms:
+    _target_: torchvision.transforms.Compose
+    transforms:
+      - _target_: torchvision.transforms.ToTensor
+      - _target_: pl_bolts.transforms.dataset_normalizations.cifar10_normalization
+  batch_size: 256
   num_workers: 20
-  download: true

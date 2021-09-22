@@ -1,6 +1,21 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+import torchvision
+
+
+def create_cifar10_resnet():
+    """
+    resenet adapted to CIFAR10
+
+    https://pytorch-lightning.readthedocs.io/en/stable/notebooks/lightning_examples/cifar10-baseline.html  # noqa 501
+    """
+    model = torchvision.models.resnet18(pretrained=False, num_classes=10)
+    model.conv1 = nn.Conv2d(
+        3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False
+    )
+    model.maxpool = nn.Identity()
+    return model
 
 
 class MNISTNet(nn.Module):

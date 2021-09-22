@@ -58,7 +58,10 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
     # run.
     # trainer.test(model, data)
 
-    input_sample = data.train[0]["feature"]
+    input_batch_example = model.prepare_batch(
+        next(iter(data.train_dataloader()))
+    )
+    input_sample = input_batch_example["feature"][0]
     input_sample = input_sample.reshape((1, *input_sample.shape))
     model_path = log_dir / "model.onnx"
     model.to_onnx(

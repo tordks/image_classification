@@ -67,3 +67,10 @@ def prepare_targets(data: dict[str], target_mapping: dict[str, str]):
             targets[new_key] = data[key]
 
     return targets
+
+
+def evaluate(expression: str):
+    """
+    Instantiating eval directly does not seem to twork with Hydra.
+    """
+    return eval(expression)
