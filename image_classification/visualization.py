@@ -44,6 +44,7 @@ class Figure:
     stage: Union[str, Stage]
     targets: dict[str, str] = None
     figure_kwargs: dict[str] = None
+    # TODO: iteration (global_step), or epoch?
     every_n: int = 1
     input_ax: bool = False
 

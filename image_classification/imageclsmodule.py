@@ -25,6 +25,11 @@ ModuleType = Union[Module, pl.LightningModule]
 
 
 # TODO: consider refactoring helper functions to make the class more readable
+# TODO: How to handle the autograd? (if dont detach: keep the same graph,
+# Lightning metrics detach on their own) (no detach => a reference is always
+# kept => mem leak)
+# TODO: How to handle the different devices? (resource constraint + libs not
+# doing GPU)
 class ImageClassificationModule(pl.LightningModule):
     def __init__(self, config: DictConfig):
         super().__init__()
@@ -96,9 +101,10 @@ class ImageClassificationModule(pl.LightningModule):
         :param stage: The stage from which this is called
         :param step: The current step. Meaning depends on stage
         """
+        # TODO: viz expensive, some processing should only happen every nth,
+        # when the viz is needed
         for plotter in self.visualizations:
             if plotter.stage == stage and step % plotter.every_n == 0:
-
                 plot_data = prepare_targets(data, plotter.targets)
 
                 for key, value in plot_data.items():
@@ -182,6 +188,8 @@ class ImageClassificationModule(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         self.log_metrics(self.validation_metrics)
+        # TODO: consider difference between epoch and iteration (# step)
+        # TODO: add extras dict
         self.visualize(
             data=self.validation_metrics,
             stage=Stage.on_validation_epoch_end,

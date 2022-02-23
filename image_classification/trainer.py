@@ -74,6 +74,7 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
     )
 
     onnx_model = onnx.load(model_path)
+    # TODO: check here if batch size is dynamic
     onnx.checker.check_model(onnx_model)
 
     metric_to_optimize = config.get("metric_to_optimize")
