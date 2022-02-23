@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.0.1
+  rev: v4.1.0
   hooks:
       -   id: check-added-large-files
       -   id: check-yaml
@@ -10,12 +10,12 @@ repos:
       -   id: mixed-line-ending
       -   id: trailing-whitespace
 - repo: https://github.com/ambv/black
-  rev: 21.5b1
+  rev: 22.1.0
   hooks:
   - id: black
     language_version: python3.8
 - repo: https://github.com/PyCQA/flake8
-  rev: 3.9.2
+  rev: 4.0.1
   hooks:
     - id: flake8
       additional_dependencies: [
@@ -26,11 +26,11 @@ repos:
       args:
         - --max-line-length=80
 - repo: https://github.com/jorisroovers/gitlint
-  rev: v0.15.1
+  rev: v0.17.0
   hooks:
     - id: gitlint
 - repo: https://github.com/asottile/pyupgrade
-  rev: v2.18.3
+  rev: v2.31.0
   hooks:
   -   id: pyupgrade
       args: ["--py38-plus"]
