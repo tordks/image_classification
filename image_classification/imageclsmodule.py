@@ -94,6 +94,7 @@ class ImageClassificationModule(pl.LightningModule):
                 self.visualizations.append(plotter)
 
     def visualize(self, data: dict[str], stage: Stage, step: int):
+        # TODO: make into callback?
         """
         Create all visualizations for the specified stage.
 
@@ -112,7 +113,7 @@ class ImageClassificationModule(pl.LightningModule):
                         plot_data[key] = value.compute()
 
                 figure = plotter.plot(**plot_data)
-                self.logger.experiment.add_figure(
+                self.logger.log_image(
                     f"{stage.value}/{plotter.identifier}",
                     figure,
                     self.global_step,
@@ -189,7 +190,8 @@ class ImageClassificationModule(pl.LightningModule):
     def on_validation_epoch_end(self):
         self.log_metrics(self.validation_metrics)
         # TODO: consider difference between epoch and iteration (# step)
-        # TODO: add extras dict
+        # TODO: add option of preprocessing before visualization.
+        #     * only process on demand to avoid overhead
         self.visualize(
             data=self.validation_metrics,
             stage=Stage.on_validation_epoch_end,

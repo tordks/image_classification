@@ -4,6 +4,7 @@
 # https://pytorch-lightning.readthedocs.io/en/stable/notebooks/lightning_examples/cifar10-baseline.html
 
 experiment_name: cifar10
+experiment_description: basline cifar10 using pl_bolts example
 
 num_classes: &num_classes 10
 metric_to_optimize: &metric_to_optimize "val_f1"
@@ -55,6 +56,7 @@ module:
   visualization:
     - _target_: image_classification.visualization.Figure
       stage: on_validation_epoch_end
+      every_n: 1
       identifier: confusion_matrix
       plotter:
         _target_: image_classification.visualization.ConfusionMatrixPlotter
