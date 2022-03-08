@@ -16,6 +16,9 @@ from torchvision import transforms
 # TODO: make typed object that represent the item in a batch
 
 
+# TODO: How to handle preproc that should be saved with the network,
+# (ie. standardization)? Wrapper that contains a subnetwork + tansforms?
+
 # TODO: with new batch_mapping this wrapper dataset might no longer be needed.
 class MNIST(torchvision.datasets.MNIST):
     """

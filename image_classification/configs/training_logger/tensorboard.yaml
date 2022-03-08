@@ -1,0 +1,6 @@
+  _target_: image_classification.loggers.CustomTensorBoardLogger
+  save_dir: "."
+  name: ""
+  version: tensorboard
+  default_hp_metric: True
+  log_graph: true

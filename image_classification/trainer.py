@@ -3,11 +3,13 @@ from typing import Optional
 
 import hydra
 from hydra.core.hydra_config import HydraConfig
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
+
 import onnx
 from pathlib import Path
 import pytorch_lightning as pl
 from pytorch_lightning.utilities.parsing import AttributeDict
+from ruamel.yaml import YAML
 
 from image_classification.imageclsmodule import ImageClassificationModule
 from image_classification.utils import (
@@ -26,6 +28,12 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
     if "seed" in config:
         pl.seed_everything(config["seed"], workers=True)
 
+    training_logger = hydra.utils.instantiate(config.training_logger)
+
+    config_path = Path("train_config.yaml")
+    YAML().dump(OmegaConf.to_object(config), config_path)
+    training_logger.save_file(key=config_path.name, fpath=config_path)
+
     # Set up data
     data: pl.LightningDataModule = hydra.utils.instantiate(config.data)
 
@@ -34,9 +42,6 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
         hydra.utils.instantiate(callback)
         for _, callback in config.callbacks.items()
     ]
-
-    training_logger = hydra.utils.instantiate(config.training_logger)
-    log_dir = Path(training_logger.log_dir)
 
     trainer = hydra.utils.instantiate(
         config.trainer,
@@ -63,7 +68,8 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
     )
     input_sample = input_batch_example["feature"][0]
     input_sample = input_sample.reshape((1, *input_sample.shape))
-    model_path = log_dir / "model.onnx"
+
+    model_path = Path("model.onnx")
     model.to_onnx(
         model_path,
         input_sample=input_sample,
@@ -72,9 +78,11 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
         dynamic_axes={"feature": {0: "batch_size"}},
         export_params=True,
     )
-
     onnx_model = onnx.load(model_path)
+    # TODO: check here if batch size is dynamic
     onnx.checker.check_model(onnx_model)
+
+    trainer.logger.save_file(key="model.onnx", fpath=model_path)
 
     metric_to_optimize = config.get("metric_to_optimize")
     if metric_to_optimize is not None:
@@ -83,6 +91,10 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
         return trainer.callback_metrics[metric_to_optimize]
 
 
+# TODO: How to make optuna and neptune work well togheter?
+# TODO: Make sure all metadata are propagated to Neptune
+#   * optimization results file (need to happen outside run function)
+#   * .hydra folder with hydra overrides and configs
 @hydra.main(config_path="./configs/", config_name="config")
 def run(config: DictConfig):
     hydra_config = HydraConfig.get()

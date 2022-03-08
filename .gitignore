@@ -1,6 +1,8 @@
 *.eggs
 *pycache*
 
+.venv
+
 data
 lightning_logs
 mlruns
