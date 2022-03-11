@@ -10,3 +10,4 @@ mlruns
 *.code-workspace
 logs
 multirun
+.python-version
