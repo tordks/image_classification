@@ -1,4 +1,4 @@
-version: 1
+version: 2
 
 updates:
   - package-ecosystem: "github-actions"
@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "daily"
 
-  - package-ecosystem: "poetry"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
