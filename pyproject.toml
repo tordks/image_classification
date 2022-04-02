@@ -10,7 +10,7 @@ authors = ["Tord Kriznik Sørensen"]
 
 [tool.poetry.dependencies]
 python = "~3.9"
-click = "^8.0.1"
+click = "^8.1.2"
 torch = "^1.11.0"
 torchvision = "^0.12.0"
 pydantic = "^1.8.2"
