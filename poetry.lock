@@ -822,11 +822,11 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "neptune-client"
-version = "0.14.3"
+version = "0.16.1"
 description = "Neptune Client"
 category = "main"
 optional = false
-python-versions = ">=3.6.0"
+python-versions = ">=3.7.0"
 
 [package.dependencies]
 boto3 = ">=1.16.0"
@@ -1822,7 +1822,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "7b80341e594e956b41a10a8c7fa39166582120b84d1988ac613bd2365545a870"
+content-hash = "c980660ddcea49c3be21150ef49aa76ff7b7aecdb6341699f91e265cdbc33369"
 
 [metadata.files]
 absl-py = [
@@ -2514,7 +2514,7 @@ multidict = [
     {file = "multidict-6.0.2.tar.gz", hash = "sha256:5ff3bd75f38e4c43f1f470f2df7a4d430b821c4ce22be384e1459cb57d6bb013"},
 ]
 neptune-client = [
-    {file = "neptune-client-0.14.3.tar.gz", hash = "sha256:60e124a340d8ccb88416e3ea0c840b599aa0fd613347ea903c6d0d807d51fbdb"},
+    {file = "neptune-client-0.16.1.tar.gz", hash = "sha256:821238f510486feacd87c745f4646916259a416545ab678b47195729c071f249"},
 ]
 networkx = [
     {file = "networkx-2.7.1-py3-none-any.whl", hash = "sha256:011e85d277c89681e8fa661cf5ff0743443445049b0b68789ad55ef09340c6e0"},
