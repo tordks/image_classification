@@ -1,6 +1,6 @@
 # Assumes experiment_description and experiment_name exists
 _target_: image_classification.loggers.CustomNeptuneLogger
-api_key: ${env:NEPTUNE_API_TOKEN}
+api_key: ${oc.env:NEPTUNE_API_TOKEN}
 project: tordks/image-classification
 description: "${experiment_description}"
 tags: "${experiment_name}"

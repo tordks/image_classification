@@ -1,6 +1,7 @@
 defaults:
+  - _self_
   - experiment: mnist
-  - training_logger: neptune
+  - training_logger: tensorboard
   - hp_search: null
 
 seed: 7

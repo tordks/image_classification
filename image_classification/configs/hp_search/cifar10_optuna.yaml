@@ -16,15 +16,7 @@ hydra:
     sampler:
       _target_: optuna.samplers.RandomSampler
 
-    search_space:
-      data.batch_size:
-        type: categorical
-        choices: [32, 64, 128, 256]
-      module.lr_scheduler.max_lr:
-        type: float
-        low: 0.001
-        high: 1
-      module.optimizer.momentum:
-        type: float
-        low: 0.1
-        high: 0.9
+    params:
+      data.batch_size: choice(32, 64, 128, 256)
+      module.lr_scheduler.max_lr: interval(0.001, 1)
+      module.optimizer.momentum: interval(0.1, 0.9)

@@ -1,16 +1,14 @@
-from copy import deepcopy
+from pathlib import Path
 from typing import Optional
 
 import hydra
+import onnx
+import pytorch_lightning as pl
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
-
-import onnx
-from pathlib import Path
-import pytorch_lightning as pl
-from pytorch_lightning.utilities.parsing import AttributeDict
 from ruamel.yaml import YAML
 
+from image_classification import logger
 from image_classification.imageclsmodule import ImageClassificationModule
 from image_classification.utils import (
     deep_get,
@@ -51,11 +49,7 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
 
     model: pl.LightningModule = ImageClassificationModule(config.module)
     if hyperparameters:
-        # Could (or maybe should) set these in the pl Module, but there are
-        # hparams that are not inside the module, eg. batch size. So this seems
-        # more appropriate
-        model._set_hparams(AttributeDict(hyperparameters))
-        model._hparams_initial = deepcopy(model._hparams)
+        model.save_hyperparameters(hyperparameters)
 
     # Train
     trainer.fit(model, data)
@@ -91,6 +85,22 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
         return trainer.callback_metrics[metric_to_optimize]
 
 
+def get_hyperparameter(current_config: DictConfig, hydra_config: DictConfig):
+    """
+    Within the config we don't know which values were the hyperparameters. Hence
+    extract the hyperparameter keys from the search space and get the values
+    from the config.
+    """
+    search_space = hydra_config.sweeper.params
+    hyperparameters = {
+        simplify_search_space_key(hparam): simplify_search_space_value(
+            deep_get(current_config, hparam)
+        )
+        for hparam in search_space
+    }
+    return hyperparameters
+
+
 # TODO: How to make optuna and neptune work well togheter?
 # TODO: Make sure all metadata are propagated to Neptune
 #   * optimization results file (need to happen outside run function)
@@ -98,19 +108,14 @@ def train(config: DictConfig, hyperparameters: Optional[dict] = None):
 @hydra.main(config_path="./configs/", config_name="config")
 def run(config: DictConfig):
     hydra_config = HydraConfig.get()
-    if "sweeper" in hydra_config and "search_space" in hydra_config.sweeper:
-        search_space = hydra_config.sweeper.search_space
-        hyperparameters = {
-            simplify_search_space_key(hparam): simplify_search_space_value(
-                deep_get(config, hparam)
-            )
-            for hparam in search_space
-        }
-        train_result = train(config, hyperparameters=hyperparameters)
-    else:
-        train_result = train(config)
+    logger.info(f"config: {config}")
 
-    return train_result
+    hyperparameters = None
+    if hydra_config.sweeper.params is not None:
+        hyperparameters = get_hyperparameter(config, hydra_config)
+        logger.info(f"hyperparameters: {hyperparameters}")
+
+    return train(config, hyperparameters=hyperparameters)
 
 
 if __name__ == "__main__":
