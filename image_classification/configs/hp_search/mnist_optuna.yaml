@@ -16,16 +16,8 @@ hydra:
     sampler:
       _target_: optuna.samplers.RandomSampler
 
-    search_space:
-      data.batch_size:
-        type: categorical
-        choices: [32, 64, 128]
-      module.optimizer.lr:
-        type: categorical
-        choices: [0.0001, 0.001, 0.01, 0.1]
-      module.optimizer._target_:
-        type: categorical
-        choices: ["torch.optim.Adam", "adabelief_pytorch.AdaBelief"]
-      module.loss.gamma:
-        type: categorical
-        choices: [1, 2, 3, 4]
+    params:
+      data.batch_size: choice(32, 64, 128)
+      module.optimizer.lr: choice(0.0001, 0.001, 0.01, 0.2)
+      module.optimizer._target_: choice("torch.optim.Adam", "adabelief_pytorch.AdaBelief")
+      module.loss.gamma: choice(1, 2, 3, 4)
