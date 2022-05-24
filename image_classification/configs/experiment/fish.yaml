@@ -1,28 +1,45 @@
 # @package _global_
 
-experiment_name: mnist
-experiment_description: baseline MNIST example
+# dataset from: https://www.kaggle.com/datasets/crowww/a-large-scale-fish-dataset
 
-num_classes: &num_classes 10
-# NOTE: this entry is assumed to be present
+experiment_name: fish
+experiment_description: dataset to test both image classification and segmentation
+data_dir: &data_dir ${work_dir}/data/fish-dataset/NA_Fish_Dataset
+
+num_classes: &num_classes 9
 metric_to_optimize: &metric_to_optimize "val_f1"
+optimization_mode: &optimization_mode "max"
 
 module:
   network:
-    _target_: image_classification.network.MNISTNet
+    _target_: image_classification.models.model_wrapper.ModelWrapper
+    target: "feature"
+    network:
+      _target_: torchvision.models.resnet18
+      num_classes: *num_classes
   loss:
-    _target_: image_classification.losses.FocalLoss
-    gamma: 2
-    reduction: "mean"
+    _target_: torch.nn.CrossEntropyLoss
+
   optimizer:
-    _target_: torch.optim.Adam
+    _target_: torch.optim.SGD
     lr: 0.01
+    momentum: 0.9
+    weight_decay: 0.00005
+
   lr_scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    mode: *optimization_mode
+    factor: 0.5
+    patience: 10
+    min_lr: 1e-6
+  interval: "epoch"
+  monitor: "val_loss"
+
   training_metrics:
     train_f1:
       _target_: torchmetrics.F1
       num_classes: *num_classes
+
   validation_metrics:
     val_f1:
       _target_: torchmetrics.F1
@@ -34,8 +51,6 @@ module:
         _target_: torchmetrics.ConfusionMatrix
         num_classes: *num_classes
         normalize: "true"
-  monitor: "val_loss"
-  hp_metric: *metric_to_optimize
 
   visualization:
     - _target_: image_classification.visualization.Figure
@@ -49,14 +64,10 @@ module:
       figure_kwargs:
         figsize: [8, 8]
 
+  hp_metric: *metric_to_optimize
+
 data:
-  _target_: image_classification.data.mnist.MNISTDataModule
-  data_dir: ${data_dir}
-  transform:
-    - _target_: torchvision.transforms.ToTensor
-    - _target_: torchvision.transforms.Normalize
-      mean: [0.1307]
-      std: [0.3081]
-  batch_size: 32
-  num_workers: 20
-  download: true
+  _target_: image_classification.data.fish.FishDataModule
+  data_dir: *data_dir
+  batch_size: 10
+  num_workers: 8
