@@ -211,6 +211,10 @@ class ImageClassificationModule(pl.LightningModule):
     def configure_optimizers(self):
         """
         Configure optimizer and scheduler
+
+        See https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#configure-optimizers  # noqa: 501
+        for how the input should be. Here we enforce that the
+        lr_scheduler_config option
         """
         optimizer = hydra.utils.instantiate(
             self.config.optimizer, self.network.parameters()
@@ -218,18 +222,11 @@ class ImageClassificationModule(pl.LightningModule):
         configuration = {"optimizer": optimizer}
 
         if "lr_scheduler" in self.config:
-            lr_scheduler = hydra.utils.instantiate(
-                self.config.lr_scheduler, optimizer
+            scheduler = hydra.utils.instantiate(
+                self.config.lr_scheduler["scheduler"], optimizer
             )
-            configuration["lr_scheduler"] = {"scheduler": lr_scheduler}
-
-            if "monitor" in self.config:
-                configuration["lr_scheduler"]["monitor"] = self.config.monitor
-
-            # TODO: consider loading the scheduler dict directly from conf.
-            # Still need to insert optimizer two places though, but it will be
-            # more clear where monitor and interval is used.
-            if "interval" in self.config:
-                configuration["lr_scheduler"]["interval"] = self.config.interval
+            configuration["lr_scheduler"] = dict(self.config.lr_scheduler) | {
+                "scheduler": scheduler
+            }
 
         return configuration

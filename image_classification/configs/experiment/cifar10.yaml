@@ -26,13 +26,15 @@ module:
     weight_decay: 0.00005
 
   lr_scheduler:
-    _target_: torch.optim.lr_scheduler.OneCycleLR
-    max_lr: 0.1
-    epochs: ${trainer.max_epochs}
-    steps_per_epoch:
-      _target_: image_classification.utils.evaluate
-      expression: "45000 // ${data.batch_size}"
-  interval: "step"
+    scheduler:
+      _target_: torch.optim.lr_scheduler.OneCycleLR
+      max_lr: 0.1
+      epochs: ${trainer.max_epochs}
+      steps_per_epoch:
+        _target_: image_classification.utils.evaluate
+        expression: "45000 // ${data.batch_size}"
+    interval: "epoch"
+    monitor: "val_loss"
 
   training_metrics:
     train_f1:
