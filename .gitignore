@@ -3,7 +3,7 @@
 
 .venv
 
-data
+/data
 lightning_logs
 mlruns
 .vscode
