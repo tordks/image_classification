@@ -18,7 +18,9 @@ module:
     _target_: torch.optim.Adam
     lr: 0.01
   lr_scheduler:
-    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    monitor: "val_loss"
   training_metrics:
     train_f1:
       _target_: torchmetrics.F1

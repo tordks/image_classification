@@ -27,13 +27,14 @@ module:
     weight_decay: 0.00005
 
   lr_scheduler:
-    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
-    mode: *optimization_mode
-    factor: 0.5
-    patience: 10
-    min_lr: 1e-6
-  interval: "epoch"
-  monitor: "val_loss"
+    scheduler:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      mode: *optimization_mode
+      factor: 0.5
+      patience: 10
+      min_lr: 1e-6
+    interval: "epoch"
+    monitor: "val_loss"
 
   training_metrics:
     train_f1:
@@ -70,4 +71,4 @@ data:
   _target_: image_classification.data.fish.FishDataModule
   data_dir: *data_dir
   batch_size: 10
-  num_workers: 8
+  num_workers: 0
