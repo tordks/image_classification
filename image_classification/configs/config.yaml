@@ -22,7 +22,7 @@ trainer:
   _target_: pytorch_lightning.Trainer
   profiler: "pytorch"
   max_epochs: 30
-  gpus: -1
+  gpus: 0
 
 callbacks:
   model_checkpoint:

@@ -8,33 +8,25 @@ from torch.functional import Tensor
 from torch.nn import Module
 from torchmetrics import Metric
 
+from image_classification import Stage
 from image_classification.metrics import MetricsWrapper
-from image_classification.utils import prepare_targets
-from image_classification.visualization import Stage
+from image_classification.transforms import TransformScheduler
+from image_classification.visualization import VisualizationScheduler
 
 
 # TODO: weight loss based on class weights from datamodule
 # TODO: weigh loss based on class compatibility
 # TODO: adaptively weigh hard samples more than easy samples
-# TODO: add augmentations as inputs
 # TODO: consider separating out setup functions to make class more readable.
 # TODO: Find a way to get an easy overview of the class state, ie. which self
 #       variables exist and the config.
 
-ModuleType = Union[Module, pl.LightningModule]
 
-
-# TODO: consider refactoring helper functions to make the class more readable
-# TODO: How to handle the autograd? (if dont detach: keep the same graph,
-# Lightning metrics detach on their own) (no detach => a reference is always
-# kept => mem leak)
-# TODO: How to handle the different devices? (resource constraint + libs not
-# doing GPU)
 class ImageClassificationModule(pl.LightningModule):
     def __init__(self, config: DictConfig):
         super().__init__()
         self.config = config
-        self.network = hydra.utils.instantiate(self.config.network)
+        self.network: Module = hydra.utils.instantiate(self.config.network)
 
         self.batch_mapping = None
         if "batch_mapping" in self.config:
@@ -46,7 +38,8 @@ class ImageClassificationModule(pl.LightningModule):
 
             self.batch_mapping = self.config.batch_mapping
 
-        self.visualizations = []
+        self.transform_scheduler = None
+        self.visualization_scheduler = None
         self.training_metrics = {}
         self.validation_metrics = {}
 
@@ -57,9 +50,11 @@ class ImageClassificationModule(pl.LightningModule):
         """
         self.loss = hydra.utils.instantiate(self.config.loss)
         self.setup_metrics()
+        self.setup_transforms()
         self.setup_visualization()
 
     def setup_metrics(self):
+        # TODO: introduce MetricsCollection for handling metrics
         """
         Instantates all metrics and wraps all metrics in a MetricsWrapper
         """
@@ -86,38 +81,50 @@ class ImageClassificationModule(pl.LightningModule):
 
     def setup_visualization(self):
         """
-        Instantiates all visualizations
+        Instantiates visualizations
         """
+        visualizations = []
         if "visualization" in self.config:
             for plotter_config in self.config.visualization:
-                plotter = hydra.utils.instantiate(plotter_config)
-                self.visualizations.append(plotter)
+                plotter = hydra.utils.instantiate(
+                    plotter_config, _convert_="all"
+                )
+                visualizations.append(plotter)
+
+        self.visualization_scheduler = VisualizationScheduler(visualizations)
+
+    def setup_transforms(self):
+        """
+        Instantiates transforms
+        """
+        transforms = []
+        if "transforms" in self.config:
+            for transform_config in self.config.transforms:
+                transform = hydra.utils.instantiate(transform_config)
+                transforms.append(transform)
+        self.transform_scheduler = TransformScheduler(transforms)
+
+    def transform(self, data: dict[str], stage: Stage, step: int):
+        """
+        Perform processing at specified stage and step
+        """
+        return self.transform_scheduler(data, stage, step)
 
     def visualize(self, data: dict[str], stage: Stage, step: int):
-        # TODO: make into callback?
         """
-        Create all visualizations for the specified stage.
+        Create all visualizations for the specified stage and step.
 
         :param data: Data available for us in the visualization
         :param stage: The stage from which this is called
         :param step: The current step. Meaning depends on stage
         """
-        # TODO: viz expensive, some processing should only happen every nth,
-        # when the viz is needed
-        for plotter in self.visualizations:
-            if plotter.stage == stage and step % plotter.every_n == 0:
-                plot_data = prepare_targets(data, plotter.targets)
-
-                for key, value in plot_data.items():
-                    if isinstance(value, Metric):
-                        plot_data[key] = value.compute()
-
-                figure = plotter.plot(**plot_data)
-                self.logger.log_image(
-                    f"{stage.value}/{plotter.identifier}",
-                    figure,
-                    self.global_step,
-                )
+        figures = self.visualization_scheduler(data, stage, step)
+        for identifier, figure in figures.items():
+            self.logger.log_image(
+                f"{stage.value}/{identifier}",
+                figure,
+                self.global_step,
+            )
 
     def forward(self, x):
         return self.network(x)
@@ -168,6 +175,18 @@ class ImageClassificationModule(pl.LightningModule):
         self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
         self.update_metrics(self.training_metrics, prediction, batch["label"])
 
+        data = batch | {"prediction": prediction}
+        data = data | self.transform(
+            data=data,
+            stage=Stage.training_step,
+            step=self.global_step,
+        )
+
+        self.visualize(
+            data=data,
+            stage=Stage.training_step,
+            step=self.global_step,
+        )
         return {"batch_idx": batch_idx, "loss": loss}
 
     def validation_step(self, batch, batch_idx):
@@ -182,16 +201,31 @@ class ImageClassificationModule(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
         self.update_metrics(self.validation_metrics, prediction, batch["label"])
 
+        data = batch | {"prediction": prediction}
+        data = data | self.transform(
+            data=data,
+            stage=Stage.validation_step,
+            step=self.global_step,
+        )
+
+        self.visualize(
+            data=data,
+            stage=Stage.validation_step,
+            step=self.global_step,
+        )
+
         return {"batch_idx": batch_idx, "val_loss": loss}
 
     def on_train_epoch_end(self):
         self.log_metrics(self.training_metrics)
+        self.visualize(
+            data=self.training_metrics,
+            stage=Stage.on_train_epoch_end,
+            step=self.current_epoch,
+        )
 
     def on_validation_epoch_end(self):
         self.log_metrics(self.validation_metrics)
-        # TODO: consider difference between epoch and iteration (# step)
-        # TODO: add option of preprocessing before visualization.
-        #     * only process on demand to avoid overhead
         self.visualize(
             data=self.validation_metrics,
             stage=Stage.on_validation_epoch_end,
@@ -206,6 +240,19 @@ class ImageClassificationModule(pl.LightningModule):
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
         self.log("test_loss", loss, on_step=False, on_epoch=True, logger=True)
+
+        data = batch | {"prediction": prediction}
+        data = data | self.transform(
+            data=data,
+            stage=Stage.validation_step,
+            step=self.global_step,
+        )
+
+        self.visualize(
+            data=data,
+            stage=Stage.validation_step,
+            step=self.global_step,
+        )
         return {"batch_idx": batch_idx, "test_loss": loss}
 
     def configure_optimizers(self):

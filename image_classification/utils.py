@@ -1,7 +1,90 @@
 from functools import reduce
-from typing import Union
+from typing import Any, Callable, Mapping, Sequence, Union
+import numpy as np
 
 from omegaconf import DictConfig
+from torch import Tensor
+from torchmetrics import Metric
+
+
+def map_recursive(obj: Union[dict, list, Any], func: Callable):
+    """
+    Map a function over the elements in a Sequence or the Values in a Mapping.
+    """
+    if isinstance(obj, Mapping):
+        return {key: map_recursive(value, func) for key, value in obj.items()}
+    elif isinstance(obj, Sequence):
+        return [map_recursive(value, func) for value in obj]
+    else:
+        return func(obj)
+
+
+def tensor2numpy(obj: Any):
+    """
+    Call detach(), cpu() and numpy() on all tensors in a sequence or mapping.
+    """
+
+    def func(x):
+        if isinstance(x, Tensor):
+            return x.detach().cpu().numpy()
+        else:
+            return x
+
+    return map_recursive(obj, func)
+
+
+def singlesequence2single(obj: Any):
+    """
+    If the length of a sequence is 1 or if it is a 0-dim array, replace the
+    array by the single element.
+    """
+
+    def func(x):
+        if isinstance(x, Tensor) and x.dim() == 0:
+            return x.item()
+        elif (
+            isinstance(x, Sequence)
+            or isinstance(x, Tensor)
+            or isinstance(x, np.ndarray)
+        ) and len(x) == 1:
+            return x[0]
+        return x
+
+    return map_recursive(obj, func)
+
+
+def select_in_dimension(obj: Any, idx: Union[Sequence[int], int]):
+    # TODO: allow for skipping dimensions.
+    """
+    For each axis select an index. Does not support skipping selecting indices
+    from a dimention.
+
+    ie. idx = (0, 4) will return the 0 and 4 element in the two first
+    dimensions.
+    """
+    if isinstance(idx, Sequence):
+        idx = tuple(idx)
+
+    def func(x):
+        if isinstance(x, Tensor) or isinstance(x, np.ndarray):
+            return x[idx]
+        else:
+            return x
+
+    return map_recursive(obj, func)
+
+
+def compute_metrics(obj: Any) -> Any:
+    """
+    Compute a metric or metrics in a Sequence or Mapping.
+    """
+
+    def func(x):
+        if isinstance(x, Metric):
+            return x.compute()
+        return x
+
+    return map_recursive(obj, func)
 
 
 def deep_get(dictionary: Union[dict, DictConfig], keys):
@@ -56,17 +139,23 @@ def simplify_search_space_value(value: Union[str, int, float]):
         return value
 
 
-def prepare_targets(data: dict[str], target_mapping: dict[str, str]):
+def args_kwargs_from_dict(data: dict[str], mapping: dict[str, str]):
     """
     Fetches the values from keys in a data dictionary and saves them to a new
-    dict with the assigned new key.
+    args at the assigned position or as kwargs with the assigned new key.
     """
-    targets = {}
-    for key, new_key in target_mapping.items():
-        if key in data:
-            targets[new_key] = data[key]
+    args = []
+    kwargs = {}
+    for key, new_key in mapping.items():
+        if isinstance(new_key, int):
+            args.append((new_key, data[key]))
+        else:
+            kwargs[new_key] = data[key]
 
-    return targets
+    if args:
+        _, args = zip(*sorted(args))
+
+    return args, kwargs
 
 
 def evaluate(expression: str):
