@@ -19,6 +19,9 @@ loguru = "~0.6.0"
 matplotlib = "^3.4.3"
 neptune-client = "~0.14.3"
 onnx = "^1.11.0"
+# NOTE: new version of protobuf broke torch, onnx etc. Keep a temporary lock on
+# this requirement for now.
+protobuf = "3.20.1"
 python = "~3.9"
 pytorch-lightning = "^1.5"
 rich = "^12.4.1"
