@@ -169,6 +169,11 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch_idx: current batch idx
         """
         batch = self.prepare_batch(batch)
+        batch = batch | self.transform(
+            data=batch,
+            stage=Stage.training_step_before_predict,
+            step=self.global_step,
+        )
 
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
@@ -178,13 +183,13 @@ class ImageClassificationModule(pl.LightningModule):
         data = batch | {"prediction": prediction}
         data = data | self.transform(
             data=data,
-            stage=Stage.training_step,
+            stage=Stage.training_step_after_predict,
             step=self.global_step,
         )
 
         self.visualize(
             data=data,
-            stage=Stage.training_step,
+            stage=Stage.training_step_after_predict,
             step=self.global_step,
         )
         return {"batch_idx": batch_idx, "loss": loss}
@@ -195,6 +200,11 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch_idx: current batch idx
         """
         batch = self.prepare_batch(batch)
+        batch = batch | self.transform(
+            data=batch,
+            stage=Stage.validation_step_before_predict,
+            step=self.global_step,
+        )
 
         prediction = self.network(batch["feature"])
         loss = self.loss(prediction, batch["label"])
@@ -204,13 +214,13 @@ class ImageClassificationModule(pl.LightningModule):
         data = batch | {"prediction": prediction}
         data = data | self.transform(
             data=data,
-            stage=Stage.validation_step,
+            stage=Stage.validation_step_after_predict,
             step=self.global_step,
         )
 
         self.visualize(
             data=data,
-            stage=Stage.validation_step,
+            stage=Stage.validation_step_after_predict,
             step=self.global_step,
         )
 

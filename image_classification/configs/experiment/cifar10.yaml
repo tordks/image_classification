@@ -58,7 +58,7 @@ module:
   transforms:
     - _target_: image_classification.transforms.Transform
       identifier: argmax
-      stage: training_step
+      stage: training_step_after_predict
       every_n: 256
       targets: "prediction"
       transform:
@@ -69,7 +69,7 @@ module:
   visualization:
     - _target_: image_classification.visualization.Subplots
       identifier: "Train images"
-      stage: training_step
+      stage: training_step_after_predict
       every_n: 256
       batch_idx: 0
       title: "Feature l:{label} p:{prediction_argmax}"
