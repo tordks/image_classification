@@ -15,8 +15,10 @@ logger.add(
 # TODO: New name? might be confusing with the LightningModule setup argument
 #       being called stage
 class Stage(Enum):
-    training_step = "training_step"
-    validation_step = "validation_step"
+    training_step_before_predict = "training_step_before_predict"
+    training_step_after_predict = "training_step_after_predict"
+    validation_step_before_predict = "validation_step_before_predict"
+    validation_step_after_predict = "validation_step_after_predict"
     training_epoch_end = "training_epoch_end"
     validation_epoch_end = "validation_epoch_end"
     on_train_epoch_end = "on_train_epoch_end"
