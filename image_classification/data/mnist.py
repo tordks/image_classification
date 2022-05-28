@@ -47,12 +47,14 @@ class MNISTDataModule(pl.LightningDataModule):
         target_transform: Optional[list[Callable]] = None,
         batch_size: int = 32,
         num_workers: int = 1,
+        shuffle: bool = True,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.download = download
+        self.shuffle = shuffle
 
         self.transform = transform
         if transform is not None:
@@ -88,7 +90,10 @@ class MNISTDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.train, batch_size=self.batch_size, num_workers=self.num_workers
+            self.train,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=self.shuffle,
         )
 
     def val_dataloader(self):

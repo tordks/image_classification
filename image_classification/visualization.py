@@ -1,66 +1,196 @@
+import re
 from dataclasses import dataclass
-from enum import Enum
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Sequence, Union
 
-from fastcore.meta import delegates
-from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
+from fastcore.meta import delegates
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from sklearn.metrics import ConfusionMatrixDisplay
 from torch import Tensor
 
-
-# TODO: New name? might be confusing with the LightningModule setup argument
-#       being called stage
-class Stage(Enum):
-    training_step = "training_step"
-    validation_step = "validation_step"
-    on_train_epoch_end = "on_train_epoch_end"
-    on_validation_epoch_end = "on_validation_epoch_end"
+from image_classification import Stage, logger
+from image_classification.utils import (
+    args_kwargs_from_dict,
+    compute_metrics,
+    select_in_dimension,
+    singlesequence2single,
+    tensor2numpy,
+)
 
 
 @dataclass
-class Figure:
+class Plotter:
     """
-    A figure with an associated plotter. Holds information on which arguments
-    goes into the plotter and at which stage in the training pipeline a plot
-    should be made.
+    Container for a plotting callable.
 
-    :param plotter: Callable which plots to a matplotlib figure by plotting to
-                    the current figure or through an input axes
-    :param stage: The stage at which to perform the plotting
+    :param plotter: Callable which plots to a matplotlib figure.
     :param targets: Mapping from the data key within the training pipeline to
                     the name of the kwarg in the plotter.
-    :param figure_kwargs: kwargs which goes into the matplotlib.pyplot.figure
+    :param tensor_idx: idx to select from each axis of all tensor/array in
+                       targets
+    """
+
+    plotter: Callable
+    targets: dict[str, str]
+    tensor_idx: Optional[Union[int, list[int]]] = None
+
+    def plot(self, *args, **kwargs):
+        if self.tensor_idx is not None:
+            args = select_in_dimension(args, self.tensor_idx)
+            kwargs = select_in_dimension(kwargs, self.tensor_idx)
+        self.plotter(*args, **kwargs)
+
+
+# TODO: Explicitly define interface, so that it will be easier to implement
+# other figure classes
+# TODO: How to handle a plotter that takes in a batch and plots information from
+# it? Create BatchSubplots class? Plotter that adds subplots to a figure?
+@dataclass
+class Subplots:
+    """
+    A figure of subplots with associated plotters. Holds information on which
+    arguments goes into the plotters and at which stage in the training pipeline
+    a plot should be made.
+
+    It also makes a mapping of the input data to the data needed by the plotter.
+    In addition to the input data it makes available the current axis to the
+    plotter.
+
+    :param identifier: Descriptive identification of figure
+    :param stage: The stage at which to perform the plotting
     :param every_n: Plot every nth step. The meaning step changes depending on
                     which stage the plot happens for. if stage =
                     "on_train_epoch_end", then step is interpretted as epoch
                     number
-    :param input_ax: Wheter to input an "ax" kwarg into the plotter call
+    :param title: Title to give figure. Defaults to identifier. Supports
+                  formatting using elements from the input data dict. The
+                  identifier is also available in the formatting.
+    :param subplots_kwargs: kwargs which goes into the
+                            matplotlib.pyplot.subplots call
     """
 
+    # TODO: Consider allowing for multiple stages for the same figure
+    #  * stage -> stages
+    #  * need to specify target per stage => target -> dict[Stage, targets]
+    #  * accept patterns? eg. both val_cm and train_cm
     identifier: str
-    plotter: Callable
+    plotters: list[Plotter]
     stage: Union[str, Stage]
-    targets: dict[str, str] = None
-    figure_kwargs: dict[str] = None
-    # TODO: iteration (global_step), or epoch?
-    every_n: int = 1
-    input_ax: bool = False
+    every_n: int
+    nrows: int = 1
+    ncols: int = 1
+    batch_idx: Optional[int] = None
+    title: Optional[str] = None
+    subplots_kwargs: dict[str] = None
 
     def __post_init__(self):
         if isinstance(self.stage, str):
             self.stage = Stage(self.stage)
 
-    def plot(self, **kwargs):
-        figure = plt.figure(**self.figure_kwargs)
-        # NOTE: Assume plotter plots to the current figure or takes in an ax
-        if self.input_ax:
-            self.plotter(ax=plt.gca(), **kwargs)
+        if self.title is None:
+            self.title = self.identifier
+
+        if self.nrows * self.ncols < len(self.plotters):
+            raise ValueError(
+                "The number of plotters greater than amount of subplots."
+            )
+        layout = {"nrows": self.nrows, "ncols": self.ncols}
+        if self.subplots_kwargs is None:
+            self.subplots_kwargs = layout
         else:
-            self.plotter(**kwargs)
+            self.subplots_kwargs = self.subplots_kwargs | layout
+
+    def _prepare_args_or_kwargs(
+        self, args_or_kwargs: Union[list, dict]
+    ) -> Union[list, dict]:
+        """
+        Operations that needs to be performed on all args and kwargs before any
+        more computation occurs.
+        """
+        args_or_kwargs = compute_metrics(args_or_kwargs)
+        args_or_kwargs = tensor2numpy(args_or_kwargs)
+        args_or_kwargs = singlesequence2single(args_or_kwargs)
+
+        if self.batch_idx is not None:
+            args_or_kwargs = select_in_dimension(args_or_kwargs, self.batch_idx)
+
+        return args_or_kwargs
+
+    def prepare(self, data: dict[str], args_kwargs_mapping: dict[str, str]):
+        """
+        Prepare args and kwargs that will be put into the plotting call.
+        """
+
+        plot_args, plot_kwargs = args_kwargs_from_dict(
+            data, args_kwargs_mapping
+        )
+        plot_args = self._prepare_args_or_kwargs(plot_args)
+        plot_kwargs = self._prepare_args_or_kwargs(plot_kwargs)
+        return plot_args, plot_kwargs
+
+    def format_title(self, data: dict[str]) -> str:
+        """
+        Formats title using input data.
+        """
+        title_targets = {
+            key: key for key in re.findall(r"\{(.*?)\}", self.title)
+        }
+        _, title_kwargs = self.prepare(data, title_targets)
+        title = self.title.format(
+            **(title_kwargs | {"identifier": self.identifier})
+        )
+        return title
+
+    def plot(self, data: dict[str]) -> Figure:
+        """
+        Create figure and perform the specified plotting.
+        """
+
+        figure, axes = plt.subplots(**self.subplots_kwargs)
+        if not isinstance(axes, Sequence):
+            axes = np.array([axes])
+        axes = axes.flatten()
+
+        logger.info(f"Plot '{self.identifier}' at stage '{self.stage.value}'")
+
+        for ax, plotter in zip(axes, self.plotters):
+            logger.info(plotter)
+            plt.sca(ax)
+            plot_args, plot_kwargs = self.prepare(
+                data | {"ax": ax}, plotter.targets
+            )
+            plotter.plot(*plot_args, **plot_kwargs)
+
+        plt.title(self.format_title(data))
         plt.close()
         return figure
+
+
+@dataclass
+class VisualizationScheduler:
+    """
+    Handle which figures should be visualized at which stage and step.
+    """
+
+    figures: Union[Sequence[Subplots], Subplots]
+
+    def __post_init__(self):
+        if not isinstance(self.figures, Sequence):
+            self.figures = [self.figures]
+
+    def __call__(
+        self,
+        data: dict[str, Any],
+        stage: Stage,
+        step: int,
+    ):
+        figures_to_plot = {}
+        for figure in self.figures:
+            if figure.stage == stage and step % figure.every_n == 0:
+                figures_to_plot[figure.identifier] = figure.plot(data)
+        return figures_to_plot
 
 
 @delegates(ConfusionMatrixDisplay)

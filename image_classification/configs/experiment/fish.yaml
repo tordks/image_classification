@@ -53,17 +53,50 @@ module:
         num_classes: *num_classes
         normalize: "true"
 
+  transforms:
+    - _target_: image_classification.transforms.Transform
+      identifier: argmax
+      stage: training_step
+      every_n: 25
+      targets: "prediction"
+      transform:
+        _target_: torch.argmax
+        _partial_: true
+        dim: 1
+
   visualization:
-    - _target_: image_classification.visualization.Figure
+    - _target_: image_classification.visualization.Subplots
+      identifier: "Train images"
+      stage: training_step
+      every_n: 25
+      batch_idx: 0
+      title: "Feature l:{label} p:{prediction_argmax}"
+      nrows: 1
+      ncols: 1
+      subplots_kwargs:
+        figsize: [8, 8]
+
+      plotters:
+        - _target_: image_classification.visualization.Plotter
+          plotter:
+            _target_: matplotlib.pyplot.imshow
+            _partial_: true
+          targets: { feature: 0 }
+          tensor_idx: 0
+
+    - _target_: image_classification.visualization.Subplots
+      identifier: "confusion matrix"
       stage: on_validation_epoch_end
       every_n: 1
-      identifier: confusion_matrix
-      plotter:
-        _target_: image_classification.visualization.ConfusionMatrixPlotter
-      targets: { val_cm: confusion_matrix }
-      input_ax: true
-      figure_kwargs:
+      nrows: 1
+      ncols: 1
+      subplots_kwargs:
         figsize: [8, 8]
+      plotters:
+        - _target_: image_classification.visualization.Plotter
+          plotter:
+            _target_: image_classification.visualization.ConfusionMatrixPlotter
+          targets: { val_cm: confusion_matrix }
 
   hp_metric: *metric_to_optimize
 
