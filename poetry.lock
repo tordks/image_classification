@@ -334,6 +334,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "einops"
+version = "0.4.1"
+description = "A new flavour of deep learning operations"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "fastcore"
 version = "1.4.3"
 description = "Python supercharged for fastai development"
@@ -1685,7 +1693,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "4e37aed9feaaab17c629f97cda1ca0792e3a14b3a10cebfccaed5dbb5ff948c7"
+content-hash = "16d110890e2e30242ebc5da69a684c649bc699702fe32c38c9a5d71247fdf8d1"
 
 [metadata.files]
 absl-py = [
@@ -1864,6 +1872,10 @@ cycler = [
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},
     {file = "distlib-0.3.4.zip", hash = "sha256:e4b58818180336dc9c529bfb9a0b58728ffc09ad92027a3f30b7cd91e3458579"},
+]
+einops = [
+    {file = "einops-0.4.1-py3-none-any.whl", hash = "sha256:932b12bb3176caef629cc513fc8a442338fdbfe1e560794a6e7306dcee65a8af"},
+    {file = "einops-0.4.1.tar.gz", hash = "sha256:65ede824fa54ce99ba969c61152f9948eb8cad08d5f0ca97c95e3804bafcce48"},
 ]
 fastcore = [
     {file = "fastcore-1.4.3-py3-none-any.whl", hash = "sha256:9013568a5bbe4a5f8a0d94eab9e883c22a00ac1a09cde211390731814d17bebb"},

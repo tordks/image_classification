@@ -67,7 +67,7 @@ module:
       batch_idx: 0
       title: "Feature l:{label} p:{prediction_argmax}"
       nrows: 1
-      ncols: 2
+      ncols: 1
       subplots_kwargs:
         figsize: [8, 8]
 
@@ -77,7 +77,8 @@ module:
             _target_: matplotlib.pyplot.imshow
             _partial_: true
           targets: { feature: 0 }
-          tensor_idx: 0
+          # tensor_idx: 0
+          rearrange_pattern: "C H W -> (C H) W"
 
     - _target_: image_classification.visualization.Subplots
       identifier: "confusion matrix"

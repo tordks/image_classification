@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Sequence, Union
+import einops
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,6 +18,7 @@ from image_classification.utils import (
     select_in_dimension,
     singlesequence2single,
     tensor2numpy,
+    rearrange_tensors,
 )
 
 
@@ -30,16 +32,44 @@ class Plotter:
                     the name of the kwarg in the plotter.
     :param tensor_idx: idx to select from each axis of all tensor/array in
                        targets
+    :param rearrange: einops rearrange pattern to be applied to matching . Can
+                      either be one string and in that case the rearrange is
+                      applied to all tensors in targets. Otherwise it is a dict
+                      with target key to pattern mapping. See
+                      https://einops.rocks/api/rearrange/ for syntax.
     """
 
     plotter: Callable
     targets: dict[str, str]
     tensor_idx: Optional[Union[int, list[int]]] = None
+    rearrange_pattern: Optional[Union[dict[str, str], str]] = None
+
+    def rearrange(self, args: list, kwargs: dict[str]):
+        """
+        rearrange args and kwargs according to given pattern
+        """
+        if isinstance(self.rearrange_pattern, str):
+            args = rearrange_tensors(args, self.rearrange_pattern)
+            kwargs = rearrange_tensors(kwargs, self.rearrange_pattern)
+        elif isinstance(self.rearrange_pattern, dict):
+            for key, pattern in self.rearrange_pattern.items():
+                if isinstance(key, int):
+                    args[key] = einops.rearrange(args[key], pattern)
+                elif isinstance(key, str):
+                    kwargs[key] = einops.rearrange(kwargs[key], pattern)
+                else:
+                    raise ValueError(
+                        f"key should be 'str' or 'int', not {type(key)}"
+                    )
+        return args, kwargs
 
     def plot(self, *args, **kwargs):
         if self.tensor_idx is not None:
             args = select_in_dimension(args, self.tensor_idx)
             kwargs = select_in_dimension(kwargs, self.tensor_idx)
+
+        args, kwargs = self.rearrange(args, kwargs)
+
         self.plotter(*args, **kwargs)
 
 
