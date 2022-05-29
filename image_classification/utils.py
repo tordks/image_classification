@@ -1,5 +1,6 @@
 from functools import reduce
 from typing import Any, Callable, Mapping, Sequence, Union
+import einops
 import numpy as np
 
 from omegaconf import DictConfig
@@ -68,6 +69,20 @@ def select_in_dimension(obj: Any, idx: Union[Sequence[int], int]):
     def func(x):
         if isinstance(x, Tensor) or isinstance(x, np.ndarray):
             return x[idx]
+        else:
+            return x
+
+    return map_recursive(obj, func)
+
+
+def rearrange_tensors(obj: Any, pattern: str):
+    """
+    Rearrange all tensors/arrays in input according to input pattern.
+    """
+
+    def func(x):
+        if isinstance(x, Tensor) or isinstance(x, np.ndarray):
+            return einops.rearrange(x, pattern)
         else:
             return x
 
