@@ -103,5 +103,6 @@ module:
 data:
   _target_: image_classification.data.fish.FishDataModule
   data_dir: *data_dir
+  resize: 128
   batch_size: 10
   num_workers: 0

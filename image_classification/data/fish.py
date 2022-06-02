@@ -15,6 +15,7 @@ class FishDataModule(pl.LightningDataModule):
         # download: bool = False,
         batch_size: int = 1,
         num_workers: int = 1,
+        resize: int = 64,
         train_val_test_split: tuple[int, int, int] = (0.6, 0.2, 0.2)
         # transforms = None
     ):
@@ -22,12 +23,14 @@ class FishDataModule(pl.LightningDataModule):
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.resize = resize
         self.train_val_test_split = train_val_test_split
 
     def setup(self, stage: Optional[str] = None):
 
-        # TODO: Handle resize in train/val/test transforms
-        transform = Compose([ToTensor(), Resize((64, 64))])
+        # NOTE: need to resize to get image as a square. Needed by collate in
+        # pytorch when collating samples into batches.
+        transform = Compose([ToTensor(), Resize((self.resize, self.resize))])
 
         dataset = ImageFolder(self.data_dir, transform=transform)
         train_val_test_split = [
