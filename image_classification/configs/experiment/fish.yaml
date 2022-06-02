@@ -18,13 +18,13 @@ module:
       _target_: torchvision.models.resnet18
       num_classes: *num_classes
   loss:
-    _target_: torch.nn.CrossEntropyLoss
+    _target_: image_classification.losses.FocalLoss
+    gamma: 2
+    reduction: "mean"
 
   optimizer:
-    _target_: torch.optim.SGD
+    _target_: torch.optim.Adam
     lr: 0.01
-    momentum: 0.9
-    weight_decay: 0.00005
 
   lr_scheduler:
     scheduler:
@@ -103,5 +103,6 @@ module:
 data:
   _target_: image_classification.data.fish.FishDataModule
   data_dir: *data_dir
+  resize: 128
   batch_size: 10
   num_workers: 0
