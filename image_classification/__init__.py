@@ -14,6 +14,8 @@ logger.add(
 
 # TODO: New name? might be confusing with the LightningModule setup argument
 #       being called stage
+# TODO: create stage groupings for shorter configs. ie. step_before_predict for
+# all steps.
 class Stage(Enum):
     training_step_before_predict = "training_step_before_predict"
     training_step_after_predict = "training_step_after_predict"
