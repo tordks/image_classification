@@ -1492,7 +1492,7 @@ typing-extensions = "*"
 
 [[package]]
 name = "torch-tb-profiler"
-version = "0.2.1"
+version = "0.4.0"
 description = "PyTorch Profiler TensorBoard Plugin"
 category = "main"
 optional = false
@@ -1696,7 +1696,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "11828c98659b31b8d408ae5c1bc3e6821cb32302baea21db60c4807fbffa2d09"
+content-hash = "b59c1ed0f1bc87017d6db3f314a78e029f46df83b085dac0a49ecc38d4f6fd46"
 
 [metadata.files]
 absl-py = [
@@ -2984,8 +2984,8 @@ torch = [
     {file = "torch-1.11.0-cp39-none-macosx_11_0_arm64.whl", hash = "sha256:0e48af66ad755f0f9c5f2664028a414f57c49d6adc37e77e06fe0004da4edb61"},
 ]
 torch-tb-profiler = [
-    {file = "torch_tb_profiler-0.2.1-py3-none-any.whl", hash = "sha256:747bff07237dca715ccb0e49779fd7228167b4610e90da6296c7dd4cb5c96398"},
-    {file = "torch_tb_profiler-0.2.1.tar.gz", hash = "sha256:5db81716203d6a3cad3fff199fd01ddab2365339ff912381640bacbe90ed9259"},
+    {file = "torch_tb_profiler-0.4.0-py3-none-any.whl", hash = "sha256:8740dedf6a33184fcb7ab04cb50a7c4330d2134d15549101e4b8e62d78280995"},
+    {file = "torch_tb_profiler-0.4.0.tar.gz", hash = "sha256:5f24c97963fa934aea3a0867a0883933909e20e7321efd8388a97e3ed4a8fc3c"},
 ]
 torchmetrics = [
     {file = "torchmetrics-0.9.2-py3-none-any.whl", hash = "sha256:ced006295c95c4555df0b8dea92960c00e3303de0da878fcf27e394df4757827"},
