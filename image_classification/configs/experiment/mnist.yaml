@@ -23,11 +23,11 @@ module:
     monitor: "val_loss"
   training_metrics:
     train_f1:
-      _target_: torchmetrics.F1
+      _target_: torchmetrics.F1Score
       num_classes: *num_classes
   validation_metrics:
     val_f1:
-      _target_: torchmetrics.F1
+      _target_: torchmetrics.F1Score
       num_classes: *num_classes
     val_cm:
       _target_: image_classification.metrics.MetricsWrapper

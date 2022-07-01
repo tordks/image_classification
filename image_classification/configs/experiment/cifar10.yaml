@@ -38,11 +38,11 @@ module:
 
   training_metrics:
     train_f1:
-      _target_: torchmetrics.F1
+      _target_: torchmetrics.F1Score
       num_classes: *num_classes
   validation_metrics:
     val_f1:
-      _target_: torchmetrics.F1
+      _target_: torchmetrics.F1Score
       num_classes: *num_classes
     val_acc:
       _target_: torchmetrics.Accuracy
