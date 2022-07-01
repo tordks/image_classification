@@ -783,11 +783,11 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "neptune-client"
-version = "0.14.3"
+version = "0.16.3"
 description = "Neptune Client"
 category = "main"
 optional = false
-python-versions = ">=3.6.0"
+python-versions = ">=3.7.0"
 
 [package.dependencies]
 boto3 = ">=1.16.0"
@@ -1696,7 +1696,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "b59c1ed0f1bc87017d6db3f314a78e029f46df83b085dac0a49ecc38d4f6fd46"
+content-hash = "f3bf2a091df82412252ecfe57c22931aa5b5748a3819fdcb37077fc295c5fc1f"
 
 [metadata.files]
 absl-py = [
@@ -2379,7 +2379,7 @@ multidict = [
     {file = "multidict-6.0.2.tar.gz", hash = "sha256:5ff3bd75f38e4c43f1f470f2df7a4d430b821c4ce22be384e1459cb57d6bb013"},
 ]
 neptune-client = [
-    {file = "neptune-client-0.14.3.tar.gz", hash = "sha256:60e124a340d8ccb88416e3ea0c840b599aa0fd613347ea903c6d0d807d51fbdb"},
+    {file = "neptune-client-0.16.3.tar.gz", hash = "sha256:e57c6d8ada49659f448e5f1173412605b2dc346945a68c4a2c84ae843a611afd"},
 ]
 nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
