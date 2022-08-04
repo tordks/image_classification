@@ -343,7 +343,7 @@ python-versions = "*"
 
 [[package]]
 name = "fastcore"
-version = "1.4.5"
+version = "1.5.14"
 description = "Python supercharged for fastai development"
 category = "main"
 optional = false
@@ -353,7 +353,7 @@ python-versions = ">=3.7"
 packaging = "*"
 
 [package.extras]
-dev = ["numpy", "nbdev (>=0.2.39)", "matplotlib", "pillow", "torch", "pandas"]
+dev = ["numpy", "nbdev (>=0.2.39)", "matplotlib", "pillow", "torch", "pandas", "jupyterlab"]
 
 [[package]]
 name = "filelock"
@@ -1696,7 +1696,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "90d50d194353e6647b4c8aa2fd90e2d0172ef99c0d46e5de718b8a6d055d9d3e"
+content-hash = "bb1fde631e0e2ccd890e2b841f92392fd23c656da04899e3ee056d87a3acff38"
 
 [metadata.files]
 absl-py = [
@@ -1881,8 +1881,8 @@ einops = [
     {file = "einops-0.4.1.tar.gz", hash = "sha256:65ede824fa54ce99ba969c61152f9948eb8cad08d5f0ca97c95e3804bafcce48"},
 ]
 fastcore = [
-    {file = "fastcore-1.4.5-py3-none-any.whl", hash = "sha256:4cb92b9d7dc82a79be4d0b486c4be0b67f21f701ce5469539df7ac21a03b21c6"},
-    {file = "fastcore-1.4.5.tar.gz", hash = "sha256:ab0a61340bc1754e32f85650568e5cd32145a22d830ddb2ffcc5d66d763c1e78"},
+    {file = "fastcore-1.5.14-py3-none-any.whl", hash = "sha256:1cb8f83c802f3f237568f9bb52b2648d3a9b2323a64fad5ad92aeac0d67b5142"},
+    {file = "fastcore-1.5.14.tar.gz", hash = "sha256:1218abad8018e228f54fdfbf5073ec99fb5e77b0024de9baac33602a45793507"},
 ]
 filelock = [
     {file = "filelock-3.7.0-py3-none-any.whl", hash = "sha256:c7b5fdb219b398a5b28c8e4c1893ef5f98ece6a38c6ab2c22e26ec161556fed6"},
