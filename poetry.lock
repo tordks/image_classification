@@ -77,17 +77,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "arrow"
-version = "1.2.2"
-description = "Better dates & times for Python"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-python-dateutil = ">=2.7.0"
-
-[[package]]
 name = "async-timeout"
 version = "4.0.2"
 description = "Timeout context manager for asyncio programs"
@@ -390,14 +379,6 @@ unicode = ["unicodedata2 (>=14.0.0)"]
 woff = ["zopfli (>=0.1.4)", "brotlicffi (>=0.8.0)", "brotli (>=1.0.1)"]
 
 [[package]]
-name = "fqdn"
-version = "1.5.1"
-description = "Validates fully-qualified domain names against RFC 1123, so that they are acceptable to modern bowsers"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0, !=3.1, !=3.2, !=3.3, !=3.4, <4"
-
-[[package]]
 name = "frozenlist"
 version = "1.3.0"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -590,17 +571,6 @@ perf = ["ipython"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
 
 [[package]]
-name = "isoduration"
-version = "20.11.0"
-description = "Operations with ISO 8601 durations"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[package.dependencies]
-arrow = ">=0.15.0"
-
-[[package]]
 name = "jmespath"
 version = "1.0.0"
 description = "JSON Matching Expressions"
@@ -634,27 +604,25 @@ python-versions = "*"
 
 [[package]]
 name = "jsonschema"
-version = "4.5.1"
+version = "3.2.0"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = "*"
 
 [package.dependencies]
 attrs = ">=17.4.0"
-fqdn = {version = "*", optional = true, markers = "extra == \"format\""}
 idna = {version = "*", optional = true, markers = "extra == \"format\""}
-isoduration = {version = "*", optional = true, markers = "extra == \"format\""}
 jsonpointer = {version = ">1.13", optional = true, markers = "extra == \"format\""}
-pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
-rfc3339-validator = {version = "*", optional = true, markers = "extra == \"format\""}
+pyrsistent = ">=0.14.0"
 rfc3987 = {version = "*", optional = true, markers = "extra == \"format\""}
-uri-template = {version = "*", optional = true, markers = "extra == \"format\""}
-webcolors = {version = ">=1.11", optional = true, markers = "extra == \"format\""}
+six = ">=1.11.0"
+strict-rfc3339 = {version = "*", optional = true, markers = "extra == \"format\""}
+webcolors = {version = "*", optional = true, markers = "extra == \"format\""}
 
 [package.extras]
-format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
-format_nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
+format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors"]
+format_nongpl = ["idna", "jsonpointer (>1.13)", "webcolors", "rfc3986-validator (>0.1.0)", "rfc3339-validator"]
 
 [[package]]
 name = "kiwisolver"
@@ -783,11 +751,11 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "neptune-client"
-version = "0.14.3"
+version = "0.16.5"
 description = "Neptune Client"
 category = "main"
 optional = false
-python-versions = ">=3.6.0"
+python-versions = ">=3.7.0"
 
 [package.dependencies]
 boto3 = ">=1.16.0"
@@ -795,6 +763,7 @@ bravado = "*"
 click = ">=7.0"
 future = ">=0.17.1"
 GitPython = ">=2.0.8"
+jsonschema = "<4.0.0"
 oauthlib = ">=2.1.0"
 packaging = "*"
 pandas = "*"
@@ -1064,10 +1033,10 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
-docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
-dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
+dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pyparsing"
@@ -1197,17 +1166,6 @@ requests = ">=2.0.0"
 
 [package.extras]
 rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
-
-[[package]]
-name = "rfc3339-validator"
-version = "0.1.4"
-description = "A pure python RFC3339 validator"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.dependencies]
-six = "*"
 
 [[package]]
 name = "rfc3987"
@@ -1395,6 +1353,14 @@ python-versions = ">=3.6"
 pbr = ">=2.0.0,<2.1.0 || >2.1.0"
 
 [[package]]
+name = "strict-rfc3339"
+version = "0.7"
+description = "Strict, simple, lightweight RFC3339 functions"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "swagger-spec-validator"
 version = "2.7.4"
 description = "Validation of Swagger specifications"
@@ -1574,17 +1540,6 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
-name = "uri-template"
-version = "1.2.0"
-description = "RFC 6570 URI Template Processor"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.extras]
-dev = ["pep8-naming", "flake8-use-fstring", "flake8-type-annotations", "flake8-requirements", "flake8-noqa", "flake8-literal", "flake8-import-order", "flake8-docstrings", "flake8-datetimez", "flake8-continuation", "flake8-comprehensions", "flake8-commas", "flake8-bugbear", "flake8-annotations", "flake8 (<4.0.0)", "mypy"]
-
-[[package]]
 name = "urllib3"
 version = "1.26.9"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1696,7 +1651,7 @@ test = []
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "90d50d194353e6647b4c8aa2fd90e2d0172ef99c0d46e5de718b8a6d055d9d3e"
+content-hash = "cfa5b3ad33411dcb5aa807343624f82947d56bdf68fe0edcb9984e69620ea4ab"
 
 [metadata.files]
 absl-py = [
@@ -1791,10 +1746,6 @@ alembic = [
 ]
 antlr4-python3-runtime = [
     {file = "antlr4-python3-runtime-4.9.3.tar.gz", hash = "sha256:f224469b4168294902bb1efa80a8bf7855f24c99aef99cbefc1bcd3cce77881b"},
-]
-arrow = [
-    {file = "arrow-1.2.2-py3-none-any.whl", hash = "sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177"},
-    {file = "arrow-1.2.2.tar.gz", hash = "sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b"},
 ]
 async-timeout = [
     {file = "async-timeout-4.0.2.tar.gz", hash = "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15"},
@@ -1891,10 +1842,6 @@ filelock = [
 fonttools = [
     {file = "fonttools-4.33.3-py3-none-any.whl", hash = "sha256:f829c579a8678fa939a1d9e9894d01941db869de44390adb49ce67055a06cc2a"},
     {file = "fonttools-4.33.3.zip", hash = "sha256:c0fdcfa8ceebd7c1b2021240bd46ef77aa8e7408cf10434be55df52384865f8e"},
-]
-fqdn = [
-    {file = "fqdn-1.5.1-py3-none-any.whl", hash = "sha256:3a179af3761e4df6eb2e026ff9e1a3033d3587bf980a0b1b2e1e5d08d7358014"},
-    {file = "fqdn-1.5.1.tar.gz", hash = "sha256:105ed3677e767fb5ca086a0c1f4bb66ebc3c100be518f0e0d755d9eae164d89f"},
 ]
 frozenlist = [
     {file = "frozenlist-1.3.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:d2257aaba9660f78c7b1d8fea963b68f3feffb1a9d5d05a18401ca9eb3e8d0a3"},
@@ -2113,10 +2060,6 @@ importlib-metadata = [
     {file = "importlib_metadata-4.11.4-py3-none-any.whl", hash = "sha256:c58c8eb8a762858f49e18436ff552e83914778e50e9d2f1660535ffb364552ec"},
     {file = "importlib_metadata-4.11.4.tar.gz", hash = "sha256:5d26852efe48c0a32b0509ffbc583fda1a2266545a78d104a6f4aff3db17d700"},
 ]
-isoduration = [
-    {file = "isoduration-20.11.0-py3-none-any.whl", hash = "sha256:b2904c2a4228c3d44f409c8ae8e2370eb21a26f7ac2ec5446df141dde3452042"},
-    {file = "isoduration-20.11.0.tar.gz", hash = "sha256:ac2f9015137935279eac671f94f89eb00584f940f5dc49462a0c4ee692ba1bd9"},
-]
 jmespath = [
     {file = "jmespath-1.0.0-py3-none-any.whl", hash = "sha256:e8dcd576ed616f14ec02eed0005c85973b5890083313860136657e24784e4c04"},
     {file = "jmespath-1.0.0.tar.gz", hash = "sha256:a490e280edd1f57d6de88636992d05b71e97d69a26a19f058ecf7d304474bf5e"},
@@ -2134,8 +2077,8 @@ jsonref = [
     {file = "jsonref-0.2.tar.gz", hash = "sha256:f3c45b121cf6257eafabdc3a8008763aed1cd7da06dbabc59a9e4d2a5e4e6697"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.5.1-py3-none-any.whl", hash = "sha256:71b5e39324422543546572954ce71c67728922c104902cb7ce252e522235b33f"},
-    {file = "jsonschema-4.5.1.tar.gz", hash = "sha256:7c6d882619340c3347a1bf7315e147e6d3dae439033ae6383d6acb908c101dfc"},
+    {file = "jsonschema-3.2.0-py2.py3-none-any.whl", hash = "sha256:4e5b3cf8216f577bee9ce139cbe72eca3ea4f292ec60928ff24758ce626cd163"},
+    {file = "jsonschema-3.2.0.tar.gz", hash = "sha256:c8a85b28d377cc7737e46e2d9f2b4f44ee3c0e1deac6bf46ddefc7187d30797a"},
 ]
 kiwisolver = [
     {file = "kiwisolver-1.4.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:6e395ece147f0692ca7cdb05a028d31b83b72c369f7b4a2c1798f4b96af1e3d8"},
@@ -2379,7 +2322,7 @@ multidict = [
     {file = "multidict-6.0.2.tar.gz", hash = "sha256:5ff3bd75f38e4c43f1f470f2df7a4d430b821c4ce22be384e1459cb57d6bb013"},
 ]
 neptune-client = [
-    {file = "neptune-client-0.14.3.tar.gz", hash = "sha256:60e124a340d8ccb88416e3ea0c840b599aa0fd613347ea903c6d0d807d51fbdb"},
+    {file = "neptune-client-0.16.5.tar.gz", hash = "sha256:c738288c7a1ab5313dfc86dcd910e03fbce1c31b094d9f92c7540ddf44ed02ef"},
 ]
 nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
@@ -2718,10 +2661,6 @@ requests-oauthlib = [
     {file = "requests-oauthlib-1.3.1.tar.gz", hash = "sha256:75beac4a47881eeb94d5ea5d6ad31ef88856affe2332b9aafb52c6452ccf0d7a"},
     {file = "requests_oauthlib-1.3.1-py2.py3-none-any.whl", hash = "sha256:2577c501a2fb8d05a304c09d090d6e47c306fef15809d102b327cf8364bddab5"},
 ]
-rfc3339-validator = [
-    {file = "rfc3339_validator-0.1.4-py2.py3-none-any.whl", hash = "sha256:24f6ec1eda14ef823da9e36ec7113124b39c04d50a4d3d3a3c2859577e7791fa"},
-    {file = "rfc3339_validator-0.1.4.tar.gz", hash = "sha256:138a2abdf93304ad60530167e51d2dfb9549521a836871b88d7f4695d0022f6b"},
-]
 rfc3987 = [
     {file = "rfc3987-1.3.8-py2.py3-none-any.whl", hash = "sha256:10702b1e51e5658843460b189b185c0366d2cf4cff716f13111b0ea9fd2dce53"},
     {file = "rfc3987-1.3.8.tar.gz", hash = "sha256:d3c4d257a560d544e9826b38bc81db676890c79ab9d7ac92b39c7a253d5ca733"},
@@ -2931,6 +2870,9 @@ stevedore = [
     {file = "stevedore-3.5.0-py3-none-any.whl", hash = "sha256:a547de73308fd7e90075bb4d301405bebf705292fa90a90fc3bcf9133f58616c"},
     {file = "stevedore-3.5.0.tar.gz", hash = "sha256:f40253887d8712eaa2bb0ea3830374416736dc8ec0e22f5a65092c1174c44335"},
 ]
+strict-rfc3339 = [
+    {file = "strict-rfc3339-0.7.tar.gz", hash = "sha256:5cad17bedfc3af57b399db0fed32771f18fc54bbd917e85546088607ac5e1277"},
+]
 swagger-spec-validator = [
     {file = "swagger-spec-validator-2.7.4.tar.gz", hash = "sha256:2aee5e1fc0503be9f8299378b10c92169572781573c6de3315e831fd0559ba73"},
     {file = "swagger_spec_validator-2.7.4-py2.py3-none-any.whl", hash = "sha256:4e373a4db5262e7257fde17d84c5c0178327b8057985ab1be63f580bfa009855"},
@@ -3019,10 +2961,6 @@ tqdm = [
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},
     {file = "typing_extensions-4.2.0.tar.gz", hash = "sha256:f1c24655a0da0d1b67f07e17a5e6b2a105894e6824b92096378bb3668ef02376"},
-]
-uri-template = [
-    {file = "uri_template-1.2.0-py3-none-any.whl", hash = "sha256:f1699c77b73b925cf4937eae31ab282a86dc885c333f2e942513f08f691fc7db"},
-    {file = "uri_template-1.2.0.tar.gz", hash = "sha256:934e4d09d108b70eb8a24410af8615294d09d279ce0e7cbcdaef1bd21f932b06"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.9-py2.py3-none-any.whl", hash = "sha256:44ece4d53fb1706f667c9bd1c648f5469a2ec925fcf3a776667042d645472c14"},
