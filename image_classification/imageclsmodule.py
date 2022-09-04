@@ -33,8 +33,8 @@ class ImageClassificationModule(pl.LightningModule):
             if "feature" not in self.config.batch_mapping.values():
                 raise ValueError("'feature' must be in the new batch keys")
 
-            if "label" not in self.config.batch_mapping.values():
-                raise ValueError("'label' must be in the new batch keys")
+            if "target" not in self.config.batch_mapping.values():
+                raise ValueError("'target' must be in the new batch keys")
 
             self.batch_mapping = self.config.batch_mapping
 
@@ -130,12 +130,12 @@ class ImageClassificationModule(pl.LightningModule):
         return self.network(x)
 
     def update_metrics(
-        self, metrics: dict[str, Metric], prediction: Tensor, label: Tensor
+        self, metrics: dict[str, Metric], prediction: Tensor, target: Tensor
     ):
         for metric in metrics.values():
             metric.to(prediction.device)
-            # NOTE: assume, all metrics only take in prediction/label as args.
-            metric.update(prediction, label)
+            # NOTE: assume, all metrics only take in prediction/target as args.
+            metric.update(prediction, target)
 
     def log_metrics(self, metrics: list[Metric]):
         for metric_name, metric in metrics.items():
@@ -176,9 +176,9 @@ class ImageClassificationModule(pl.LightningModule):
         )
 
         prediction = self.network(batch["feature"])
-        loss = self.loss(prediction, batch["label"])
+        loss = self.loss(prediction, batch["target"])
         self.log("loss", loss, on_step=False, on_epoch=True, logger=True)
-        self.update_metrics(self.training_metrics, prediction, batch["label"])
+        self.update_metrics(self.training_metrics, prediction, batch["target"])
 
         data = batch | {"prediction": prediction}
         data = data | self.transform(
@@ -207,9 +207,11 @@ class ImageClassificationModule(pl.LightningModule):
         )
 
         prediction = self.network(batch["feature"])
-        loss = self.loss(prediction, batch["label"])
+        loss = self.loss(prediction, batch["target"])
         self.log("val_loss", loss, on_step=False, on_epoch=True, logger=True)
-        self.update_metrics(self.validation_metrics, prediction, batch["label"])
+        self.update_metrics(
+            self.validation_metrics, prediction, batch["target"]
+        )
 
         data = batch | {"prediction": prediction}
         data = data | self.transform(
@@ -248,7 +250,7 @@ class ImageClassificationModule(pl.LightningModule):
         :param batch_idx: current batch idx
         """
         prediction = self.network(batch["feature"])
-        loss = self.loss(prediction, batch["label"])
+        loss = self.loss(prediction, batch["target"])
         self.log("test_loss", loss, on_step=False, on_epoch=True, logger=True)
 
         data = batch | {"prediction": prediction}
