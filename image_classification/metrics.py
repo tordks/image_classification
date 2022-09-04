@@ -13,8 +13,8 @@ class MetricsWrapper(torchmetrics.Metric):
         self.metric = metric
         self.log = log
 
-    def update(self, prediction: torch.Tensor, label: torch.Tensor):
-        self.metric.update(prediction, label)
+    def update(self, prediction: torch.Tensor, target: torch.Tensor):
+        self.metric.update(prediction, target)
 
     def reset(self):
         self.metric.reset()

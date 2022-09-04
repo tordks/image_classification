@@ -22,16 +22,16 @@ from torchvision import transforms
 # TODO: with new batch_mapping this wrapper dataset might no longer be needed.
 class MNIST(torchvision.datasets.MNIST):
     """
-    wrap batch into dictionary and standardize feature/label names
+    wrap batch into dictionary and standardize feature/target names
     """
 
     def __getitem__(self, index: int):
         feature_key = "feature"
-        label_key = "label"
+        target_key = "target"
         item = {
             key: value
             for key, value in zip(
-                (feature_key, label_key), super().__getitem__(index)
+                (feature_key, target_key), super().__getitem__(index)
             )
         }
 

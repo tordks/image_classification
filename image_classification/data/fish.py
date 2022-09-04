@@ -40,7 +40,7 @@ class FishDataModule(pl.LightningDataModule):
         # TODO: ensure class distributions match
         assert sum(train_val_test_split) == len(dataset)
 
-        self.dataset = DatasetWrapper(dataset, {0: "feature", 1: "label"})
+        self.dataset = DatasetWrapper(dataset, {0: "feature", 1: "target"})
 
         # TODO: ensure that each process gets the same split
         self.train, self.val, self.test = random_split(

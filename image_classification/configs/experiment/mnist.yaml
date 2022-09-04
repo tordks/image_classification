@@ -65,7 +65,7 @@ module:
       stage: training_step_after_predict
       every_n: 1500
       batch_idx: 0
-      title: "Feature l:{label} p:{prediction_argmax}"
+      title: "Feature l:{target} p:{prediction_argmax}"
       nrows: 1
       ncols: 1
       subplots_kwargs:
