@@ -3,8 +3,6 @@ from enum import Enum
 from loguru import logger
 from rich.logging import RichHandler
 
-from .models.imageclsmodule import ImageClassificationModule  # noqa:F401
-
 
 # TODO: make logger work well with tqdm/PL progress bar
 logger.remove()
