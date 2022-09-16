@@ -11,6 +11,6 @@ def test_focal_loss():
     target = torch.tensor([3, 0], dtype=int)
     prediction = torch.tensor([[1, 2, 3, 4], [4, 3, 5, 1]], dtype=float)
     assert torch.allclose(
-        FocalLoss(gamma=0)(prediction, target),
+        FocalLoss(gamma=0, reduction="mean")(prediction, target),
         cross_entropy(prediction, target),
     )
