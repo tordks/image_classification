@@ -36,6 +36,27 @@ def test_colorisation_wrapper():
 
 @pytest.mark.skipif(
     not (DATADIR / "cifar-10-batches-py").exists(),
+    reason="Only meant as visual check of the colorisation dataset",
+)
+def test_visualize_cifar10_colorisation():
+    cifar10 = CIFAR10(root=DATADIR, download=False)
+    dataset = ColorisationWrapper(
+        cifar10,
+        sample_mapping={0: "feature", 1: "target"},
+    )
+
+    testdir = Path("tests") / "out"
+    testdir.mkdir(exist_ok=True)
+    for idx in list(range(10)):
+        sample = dataset[idx]
+        with open(testdir / f"{idx}_feature.png", "wb") as fp:
+            sample["feature"].save(fp)
+        with open(testdir / f"{idx}_target.png", "wb") as fp:
+            sample["target"].save(fp)
+
+
+@pytest.mark.skipif(
+    not (DATADIR / "cifar-10-batches-py").exists(),
     reason="Don't want to download cifar10 in CI",
 )
 def test_cifar10_colorisation_datamodule():
