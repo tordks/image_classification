@@ -9,7 +9,7 @@ from omegaconf import DictConfig, OmegaConf
 from ruamel.yaml import YAML
 
 from image_classification import logger
-from image_classification.imageclsmodule import ImageClassificationModule
+from image_classification.models.imageclsmodule import ImageClassificationModule
 from image_classification.utils import (
     deep_get,
     simplify_search_space_key,
