@@ -11,7 +11,7 @@ module:
   network:
     _target_: image_classification.network.MNISTNet
   loss:
-    _target_: image_classification.losses.FocalLoss
+    _target_: image_classification.loss.focal_loss.FocalLoss
     gamma: 2
     reduction: "mean"
   optimizer:
